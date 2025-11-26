@@ -1,15 +1,16 @@
-// Environment variable helper for v0 runtime compatibility
-// In v0, env vars are available directly on globalThis
-const getEnv = (key: string): string => {
+function env(key: string, fallback = ""): string {
   if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key] as string
+    return process.env[key];
   }
-  // Fallback for v0 runtime
-  return (globalThis as any)[key] || ""
+  return (globalThis as any)[key] || fallback;
 }
 
-export const DATABASE_URL = getEnv("DATABASE_URL")
-export const GITHUB_CLIENT_ID = getEnv("GITHUB_CLIENT_ID")
-export const GITHUB_CLIENT_SECRET = getEnv("GITHUB_CLIENT_SECRET")
-export const CRON_SECRET = getEnv("CRON_SECRET")
-export const NODE_ENV = getEnv("NODE_ENV") || "development"
+export const DATABASE_URL = env("DATABASE_URL");
+
+export const GITHUB_CLIENT_ID = env("GITHUB_CLIENT_ID");
+
+export const GITHUB_CLIENT_SECRET = env("GITHUB_CLIENT_SECRET");
+
+export const CRON_SECRET = env("CRON_SECRET");
+
+export const NODE_ENV = env("NODE_ENV") || "development";
