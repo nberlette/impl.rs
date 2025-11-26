@@ -52,7 +52,8 @@ async function fetchGitHub<T>(endpoint: string, token?: string): Promise<T | nul
       return null
     }
 
-    return (await response.json()) as T
+    const data = await response.json()
+    return data as T
   } catch (error) {
     console.error("GitHub fetch error:", error)
     return null
@@ -138,13 +139,15 @@ export async function upsertProject(repo: GitHubRepo): Promise<number | null> {
           slug, name, description, github_url, homepage_url,
           repository_owner, repository_name, stars, forks, watchers,
           open_issues, license, topics, avatar_url, is_archived,
-          github_created_at, last_commit_at, last_synced_at, has_readme, has_license
+          github_created_at, last_commit_at, last_synced_at, has_readme,
+          has_license
         ) VALUES (
           ${slug}, ${repo.name}, ${repo.description}, ${repo.html_url},
           ${repo.homepage}, ${repo.owner.login}, ${repo.name},
-          ${repo.stargazers_count}, ${repo.forks_count}, ${repo.watchers_count},
-          ${repo.open_issues_count}, ${repo.license?.name || null},
-          ${repo.topics}, ${repo.owner.avatar_url}, ${repo.archived},
+          ${repo.stargazers_count}, ${repo.forks_count}, 
+          ${repo.watchers_count}, ${repo.open_issues_count}, 
+          ${repo.license?.name || null}, ${repo.topics}, 
+          ${repo.owner.avatar_url}, ${repo.archived},
           ${repo.created_at}, ${repo.pushed_at}, NOW(),
           true, ${repo.license !== null}
         )

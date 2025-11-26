@@ -2,12 +2,12 @@ import { json } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import { computeAllRankings } from "$lib/server/rankings"
 import { sql } from "$lib/server/db"
+import { CRON_SECRET } from "$lib/server/env"
 
 export const POST: RequestHandler = async ({ request }) => {
   const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
     return json({ error: "Unauthorized" }, { status: 401 })
   }
 

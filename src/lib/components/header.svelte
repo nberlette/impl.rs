@@ -1,8 +1,11 @@
 <script lang="ts">
   import { cn } from "$lib/utils";
   import Button from "$lib/components/ui/button.svelte";
-  import { Menu, X, Github, Search } from "lucide-svelte";
+  import UserMenu from "$lib/components/user-menu.svelte";
+  import { Menu, X, Search } from "lucide-svelte";
   import { page } from "$app/stores";
+
+  let user = $derived($page.data.user);
 
   let mobileMenuOpen = $state(false);
 
@@ -67,19 +70,12 @@
           class="pointer-events-none ml-2 hidden rounded border bg-muted 
                  px-1.5 font-mono text-[10px] font-medium lg:inline"
         >
-          ⌘K
+          /
         </kbd>
       </a>
 
-      <a
-        href="https://github.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-muted-foreground hover:text-foreground transition-colors"
-        aria-label="View on GitHub"
-      >
-        <Github class="h-5 w-5" />
-      </a>
+      <!-- Replace GitHub link with UserMenu component -->
+      <UserMenu {user} />
 
       <button
         class="md:hidden text-muted-foreground hover:text-foreground"

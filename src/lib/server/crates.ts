@@ -55,7 +55,8 @@ async function fetchCrates<T>(endpoint: string): Promise<T | null> {
       return null
     }
 
-    return (await response.json()) as T
+    const data = await response.json()
+    return data as T
   } catch (error) {
     console.error("crates.io fetch error:", error)
     return null
@@ -67,7 +68,8 @@ export async function getCrateInfo(name: string): Promise<CrateInfo | null> {
 }
 
 export async function searchCrates(query: string, perPage = 100): Promise<CrateSearchResult | null> {
-  return fetchCrates<CrateSearchResult>(`/crates?q=${encodeURIComponent(query)}&per_page=${perPage}&sort=downloads`)
+  const url = `/crates?q=${encodeURIComponent(query)}&per_page=${perPage}&sort=downloads`
+  return fetchCrates<CrateSearchResult>(url)
 }
 
 export async function getReverseDependencies(crateName: string): Promise<number> {
@@ -122,7 +124,6 @@ export async function syncCratesData(projectId: number): Promise<boolean> {
 async function updateProjectWithCrateData(projectId: number, crateName: string, crateInfo: CrateInfo): Promise<void> {
   const dependents = await getReverseDependencies(crateName)
   const hasDocsRs = crateInfo.crate.documentation?.includes("docs.rs") || true
-
   const lastVersion = crateInfo.versions[0]
 
   await sql`

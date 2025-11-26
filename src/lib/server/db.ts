@@ -1,8 +1,5 @@
 import { neon } from "@neondatabase/serverless"
-
-// In SvelteKit, $env/static/private auto-exports env vars at build time
-// We use a dynamic import pattern for flexibility
-const DATABASE_URL = process.env.DATABASE_URL || ""
+import { DATABASE_URL } from "./env"
 
 if (!DATABASE_URL) {
   console.warn("DATABASE_URL is not set - database queries will fail")

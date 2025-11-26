@@ -14,30 +14,23 @@
 		"lint": "prettier --check ."
 	},
 	"devDependencies": {
+		"clsx": "latest",
+		"tailwind-merge": "latest",
 		"src": "latest",
 		"svelte": "^5.0.0",
 		"lucide-svelte": "latest",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
-		"@sveltejs/kit": "^2.16.0",
 		"@tailwindcss/vite": "^4.0.0",
+		"@sveltejs/kit": "^2.16.0",
 		"vite": "^6.2.6",
 		"@neondatabase/serverless": "latest",
-		"clsx": "latest",
-		"tailwind-merge": "latest",
-		"@types/node": "^22",
-		"tailwindcss": "^4.0.0",
-		"typescript": "5.9.3",
-		"postcss": "^8.5",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
-		"svelte-check": "^4.0.0"
+		"svelte-check": "^4.0.0",
+		"tailwindcss": "^4.0.0",
+		"typescript": "5.9.3"
 	},
-	"dependencies": {
-		"$lib": "latest",
-		"class-variance-authority": "^0.7.1",
-		"lucide-react": "^0.454.0",
-		"tailwindcss-animate": "^1.0.7"
-	}
+	"dependencies": {}
 }

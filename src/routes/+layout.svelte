@@ -3,12 +3,14 @@
   import Header from "$lib/components/header.svelte";
   import Footer from "$lib/components/footer.svelte";
   import type { Snippet } from "svelte";
+  import type { LayoutData } from "./$types";
 
   interface Props {
     children: Snippet;
+    data: LayoutData;
   }
 
-  let { children }: Props = $props();
+  let { children, data }: Props = $props();
 </script>
 
 <svelte:head>

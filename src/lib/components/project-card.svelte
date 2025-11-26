@@ -2,13 +2,13 @@
   import { cn, formatNumber, timeAgo } from "$lib/utils";
   import Badge from "$lib/components/ui/badge.svelte";
   import Card from "$lib/components/ui/card.svelte";
+  import StarButton from "$lib/components/star-button.svelte";
   import type { RankedProject } from "$lib/types";
+  import { page } from "$app/stores";
   import {
-    Star,
     GitFork,
     Download,
     Clock,
-    ExternalLink,
     TrendingUp,
     Flame,
     Sparkles,
@@ -29,6 +29,11 @@
     class: className = ""
   }: Props = $props();
 
+  let user = $derived($page.data.user);
+  let isStarred = $derived(
+    user?.starred_projects?.includes(project.id) ?? false
+  );
+
   const rankingIcons = {
     hot: Flame,
     trending: TrendingUp,
@@ -43,13 +48,14 @@
   );
 </script>
 
-<Card class={cn("group relative overflow-hidden transition-all", 
-  "hover:shadow-md hover:border-primary/20", className)}>
-  <a
-    href="/project/{project.slug}"
-    class="block p-5"
-    aria-label="View {project.name} project details"
-  >
+<Card
+  class={cn(
+    "group relative overflow-hidden transition-all",
+    "hover:shadow-md hover:border-primary/20",
+    className
+  )}
+>
+  <div class="block p-5">
     {#if showRankBadge && rank}
       <div
         class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center
@@ -80,12 +86,13 @@
 
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2">
-          <h3
+          <a
+            href="/project/{project.slug}"
             class="truncate text-lg font-semibold text-foreground 
                    group-hover:text-primary transition-colors"
           >
             {project.name}
-          </h3>
+          </a>
           {#if project.is_featured}
             <Badge variant="default" class="text-[10px]">Featured</Badge>
           {/if}
@@ -118,30 +125,44 @@
       {/if}
     </div>
 
+    <!-- Updated stats row with StarButton -->
     <div
-      class="mt-4 flex flex-wrap items-center gap-4 text-sm 
-             text-muted-foreground"
+      class="mt-4 flex flex-wrap items-center justify-between gap-4"
     >
-      <div class="flex items-center gap-1" title="Stars">
-        <Star class="h-4 w-4" />
-        <span>{formatNumber(project.stars)}</span>
-      </div>
-      <div class="flex items-center gap-1" title="Forks">
-        <GitFork class="h-4 w-4" />
-        <span>{formatNumber(project.forks)}</span>
-      </div>
-      {#if project.total_downloads > 0}
-        <div class="flex items-center gap-1" title="Downloads">
-          <Download class="h-4 w-4" />
-          <span>{formatNumber(project.total_downloads)}</span>
+      <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <!-- Replace Star icon with interactive StarButton -->
+        <StarButton
+          projectId={project.id}
+          {isStarred}
+          isAuthenticated={!!user}
+          size="sm"
+          showCount
+          count={project.stars}
+        />
+        <div class="flex items-center gap-1" title="Forks">
+          <GitFork class="h-4 w-4" />
+          <span>{formatNumber(project.forks)}</span>
         </div>
-      {/if}
-      {#if project.last_commit_at}
-        <div class="flex items-center gap-1" title="Last updated">
-          <Clock class="h-4 w-4" />
-          <span>{timeAgo(project.last_commit_at)}</span>
-        </div>
-      {/if}
+        {#if project.total_downloads > 0}
+          <div class="flex items-center gap-1" title="Downloads">
+            <Download class="h-4 w-4" />
+            <span>{formatNumber(project.total_downloads)}</span>
+          </div>
+        {/if}
+        {#if project.last_commit_at}
+          <div class="flex items-center gap-1" title="Last updated">
+            <Clock class="h-4 w-4" />
+            <span>{timeAgo(project.last_commit_at)}</span>
+          </div>
+        {/if}
+      </div>
+
+      <a
+        href="/project/{project.slug}"
+        class="text-sm font-medium text-primary hover:underline"
+      >
+        View details
+      </a>
     </div>
 
     {#if project.ranking?.score_breakdown}
@@ -157,5 +178,5 @@
         </span>
       </div>
     {/if}
-  </a>
+  </div>
 </Card>

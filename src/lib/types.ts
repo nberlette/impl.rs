@@ -111,4 +111,16 @@ export interface SiteSetting {
   updated_at: string
 }
 
+export interface User {
+  id: number
+  github_id: number
+  github_username: string
+  name: string | null
+  email: string | null
+  avatar_url: string | null
+  starred_projects: number[]
+  created_at: string
+  updated_at: string
+}
+
 export type RankingFilter = "hot" | "trending" | "new" | "top"
