@@ -20,7 +20,7 @@
     children: Snippet;
   }
 
-  let { children }: Props = $props();
+  let { children } = $props();
   let sidebarOpen = $state(false);
 
   const navItems = [
@@ -56,7 +56,7 @@
     <div class="flex h-16 items-center justify-between border-b px-4">
       <a href="/admin" class="flex items-center gap-2 font-bold">
         <span
-          class="flex h-8 w-8 items-center justify-center rounded-md 
+          class="flex h-8 w-8 items-center justify-center rounded-md
                  bg-primary text-primary-foreground"
         >
           <span class="font-mono text-sm">rs</span>
@@ -98,8 +98,8 @@
     <div class="absolute bottom-0 left-0 right-0 border-t p-4">
       <a
         href="/"
-        class="flex items-center gap-3 rounded-md px-3 py-2 text-sm 
-               font-medium text-muted-foreground transition-colors 
+        class="flex items-center gap-3 rounded-md px-3 py-2 text-sm
+               font-medium text-muted-foreground transition-colors
                hover:bg-secondary hover:text-foreground"
       >
         <LogOut class="h-4 w-4" />
@@ -117,7 +117,7 @@
   {/if}
 
   <div class="flex flex-1 flex-col">
-    <header class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b 
+    <header class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b
                    bg-background/95 px-4 backdrop-blur lg:px-6">
       <button
         onclick={() => (sidebarOpen = true)}
@@ -132,7 +132,7 @@
     </header>
 
     <main class="flex-1 p-4 lg:p-6">
-      {@render children()}
+      {@render children?.()}
     </main>
   </div>
 </div>
