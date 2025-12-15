@@ -10,13 +10,13 @@
     data: LayoutData;
   }
 
-  let { children, data } = $props();
+  let { children, data }: Props = $props();
 </script>
 
 <svelte:head>
   <meta
     name="description"
-    content="Discover and explore the best Rust projects. Auto-aggregated
+    content="Discover and explore the best Rust projects. Auto-aggregated 
              rankings from GitHub and crates.io."
   />
   <meta property="og:title" content="impl.rs - Rust Project Showcase" />
@@ -31,7 +31,7 @@
 <div class="flex min-h-screen flex-col">
   <Header />
   <main class="flex-1">
-    {@render children?.()}
+    {@render children()}
   </main>
   <Footer />
 </div>
