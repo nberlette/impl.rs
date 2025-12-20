@@ -30,4 +30,10 @@ export const sql = new Proxy({} as ReturnType<typeof neon>, {
   apply(target, thisArg, args) {
     return getSql().apply(thisArg, args)
   },
+  ownKeys(t) {
+    return Reflect.ownKeys(getSql());
+  },
+  has(t, p) {
+    return Reflect.has(getSql(), p);
+  },
 })
