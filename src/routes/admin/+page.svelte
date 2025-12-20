@@ -26,26 +26,26 @@
   const statCards = $derived([
     {
       label: "Total Projects",
-      value: formatNumber(data.stats.totalProjects),
+      value: formatNumber(data.stats?.totalProjects ?? 0),
       icon: Package,
       color: "text-primary"
     },
     {
       label: "Pending Submissions",
-      value: formatNumber(data.stats.pendingSubmissions),
+      value: formatNumber(data.stats?.pendingSubmissions ?? 0),
       icon: Inbox,
       color: "text-warning",
       href: "/admin/submissions"
     },
     {
       label: "Added This Week",
-      value: formatNumber(data.stats.projectsThisWeek),
+      value: formatNumber(data.stats?.projectsThisWeek ?? 0),
       icon: TrendingUp,
       color: "text-success"
     },
     {
       label: "Added This Month",
-      value: formatNumber(data.stats.projectsThisMonth),
+      value: formatNumber(data.stats?.projectsThisMonth ?? 0),
       icon: Calendar,
       color: "text-primary"
     }
