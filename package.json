@@ -1,5 +1,7 @@
 {
-  "name": "base-sveltekit-app",
+  "name": "impl.rs",
+  "license": "MIT",
+  "author": "Nicholas Berlette (https://github.com/nberlette)",
   "private": true,
   "version": "0.0.1",
   "type": "module",
