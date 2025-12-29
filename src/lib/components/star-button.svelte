@@ -14,7 +14,7 @@
 
   let {
     projectId,
-    isStarred: initialStarred,
+    isStarred = $bindable(false),
     isAuthenticated,
     size = "md",
     showCount = false,
@@ -22,7 +22,6 @@
     class: className = ""
   }: Props = $props();
 
-  let isStarred = $state(initialStarred);
   let isLoading = $state(false);
   let displayCount = $state(count);
 
