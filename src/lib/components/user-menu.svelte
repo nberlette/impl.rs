@@ -14,8 +14,7 @@
     class?: string;
   }
 
-  let { user, class: className = "" }: Props = $props();
-  let menuOpen = $state(false);
+  let { user, class: className = "", open: menuOpen = $bindable(false) }: Props = $props();
 
   function toggleMenu() {
     menuOpen = !menuOpen;
@@ -28,17 +27,11 @@
   function handleClickOutside(e: MouseEvent) {
     closeMenu();
   }
-
-  onMount(() => {
-    window.addEventListener("click", handleClickOutside);
-  });
-
-  onDestroy(() => {
-    window.removeEventListener("click", handleClickOutside);
-  });
 </script>
 
-<div class={cn("relative", className)}>
+<svelte:window onkeydown={handleClickOutside} />
+
+<div class={["relative", className]}>
   {#if user}
     <!-- Use button element for proper a11y -->
     <button
