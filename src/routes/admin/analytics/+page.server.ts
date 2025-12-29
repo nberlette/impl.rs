@@ -1,23 +1,24 @@
-import type { PageServerLoad } from "./$types"
-import { sql } from "$lib/server/db"
+import type { PageServerLoad } from "./$types";
+import { sql } from "$lib/server/db";
 
 export const load: PageServerLoad = async () => {
-  const [topByStars, topByDownloads, byLicense, byTopics, recentActivity] = await Promise.all([
-    sql`
+  const [topByStars, topByDownloads, byLicense, byTopics, recentActivity] =
+    await Promise.all([
+      sql`
         SELECT name, slug, stars, forks
         FROM projects
         WHERE is_archived = false
         ORDER BY stars DESC
         LIMIT 10
       `,
-    sql`
+      sql`
         SELECT name, slug, total_downloads, weekly_downloads
         FROM projects
         WHERE is_archived = false AND total_downloads > 0
         ORDER BY total_downloads DESC
         LIMIT 10
       `,
-    sql`
+      sql`
         SELECT 
           COALESCE(license, 'Unknown') as license,
           COUNT(*) as count
@@ -27,7 +28,7 @@ export const load: PageServerLoad = async () => {
         ORDER BY count DESC
         LIMIT 10
       `,
-    sql`
+      sql`
         SELECT 
           unnest(topics) as topic,
           COUNT(*) as count
@@ -37,7 +38,7 @@ export const load: PageServerLoad = async () => {
         ORDER BY count DESC
         LIMIT 15
       `,
-    sql`
+      sql`
         SELECT 
           DATE(created_at) as date,
           COUNT(*) as count
@@ -46,7 +47,7 @@ export const load: PageServerLoad = async () => {
         GROUP BY DATE(created_at)
         ORDER BY date ASC
       `,
-  ])
+    ]);
 
   return {
     topByStars,
@@ -54,5 +55,5 @@ export const load: PageServerLoad = async () => {
     byLicense,
     byTopics,
     recentActivity,
-  }
-}
+  };
+};

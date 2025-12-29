@@ -1,21 +1,21 @@
-import type { LayoutServerLoad } from "./$types"
-import { verifyUserSession, getUserById } from "$lib/server/github-auth"
+import type { LayoutServerLoad } from "./$types";
+import { getUserById, verifyUserSession } from "$lib/server/github-auth";
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
-  const sessionToken = cookies.get("session")
+  const sessionToken = cookies.get("session");
 
   if (!sessionToken) {
-    return { user: null }
+    return { user: null };
   }
 
-  const session = verifyUserSession(sessionToken)
+  const session = verifyUserSession(sessionToken);
   if (!session) {
-    return { user: null }
+    return { user: null };
   }
 
-  const user = await getUserById(session.id)
+  const user = await getUserById(session.id);
   if (!user) {
-    return { user: null }
+    return { user: null };
   }
 
   // Don't expose the access token to the client
@@ -28,5 +28,5 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
       avatar_url: user.avatar_url,
       starred_projects: user.starred_projects,
     },
-  }
-}
+  };
+};
