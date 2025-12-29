@@ -18,7 +18,6 @@
   "devDependencies": {
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.4.0",
-    "src": "^1.1.2",
     "svelte": "^5.46.1",
     "lucide-svelte": "^0.562.0",
     "@sveltejs/adapter-auto": "^7.0.0",
