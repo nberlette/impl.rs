@@ -1,12 +1,11 @@
-import { neon } from "@neondatabase/serverless"
+import { neon } from "@neondatabase/serverless";
+import { DATABASE_URL } from "$env/static/private";
 
-let _sql = null;
+let _sql: ReturnType<typeof neon> = null!;
 
 export function getSql() {
   if (!_sql) {
-    const dbUrl =
-      process.env.DATABASE_URL ||
-      globalThis.DATABASE_URL ||
+    const dbUrl = DATABASE_URL ||
       (typeof import.meta !== "undefined" && import.meta.env?.DATABASE_URL);
 
     if (!dbUrl) {
@@ -18,16 +17,17 @@ export function getSql() {
 
     _sql = neon(dbUrl);
   }
-  return _sql
+  return _sql;
 }
 
-// Export sql getter for backwards compatibility
-export const sql = new Proxy(() => {}, {
+export type Sql = ReturnType<typeof neon>;
+
+export const sql: Sql = new Proxy((() => {}) as {} as Sql, {
   get(_, prop) {
-    return getSql()[prop];
+    return (getSql() as any)[prop];
   },
   apply(_, thisArg, args) {
-    return getSql().apply(thisArg, args);
+    return getSql().apply(thisArg, args as Parameters<Sql>);
   },
   ownKeys(t) {
     return Reflect.ownKeys(getSql());
@@ -35,4 +35,4 @@ export const sql = new Proxy(() => {}, {
   has(t, p) {
     return Reflect.has(getSql(), p);
   },
-})
+});
