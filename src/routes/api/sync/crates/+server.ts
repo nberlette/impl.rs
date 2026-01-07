@@ -1,17 +1,21 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { runCratesSync } from "$lib/server/crates";
-import { CRON_SECRET } from "$lib/server/env";
+import { isCronAuthorized } from "$lib/server/cron";
+import { getSiteSettingValue } from "$lib/server/admin";
 
 export const POST: RequestHandler = async ({ request }) => {
-  const authHeader = request.headers.get("authorization");
-
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!isCronAuthorized(request)) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const stats = await runCratesSync(50);
+    const maxProjects = await getSiteSettingValue(
+      "max_projects_per_sync",
+      50,
+    );
+    const limit = Math.max(Number(maxProjects) || 50, 1);
+    const stats = await runCratesSync(Math.min(limit, 100));
 
     return json({
       success: true,

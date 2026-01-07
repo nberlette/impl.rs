@@ -1,17 +1,21 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { runGitHubSync } from "$lib/server/github";
-import { CRON_SECRET } from "$lib/server/env";
+import { isCronAuthorized } from "$lib/server/cron";
+import { getSiteSettingValue } from "$lib/server/admin";
 
 export const POST: RequestHandler = async ({ request }) => {
-  const authHeader = request.headers.get("authorization");
-
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!isCronAuthorized(request)) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const stats = await runGitHubSync(100);
+    const maxProjects = await getSiteSettingValue(
+      "max_projects_per_sync",
+      100,
+    );
+    const limit = Math.max(Number(maxProjects) || 100, 1);
+    const stats = await runGitHubSync(limit);
 
     return json({
       success: true,

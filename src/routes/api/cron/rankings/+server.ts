@@ -2,12 +2,11 @@ import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { computeAllRankings } from "$lib/server/rankings";
 import { sql } from "$lib/server/db";
-import { CRON_SECRET } from "$lib/server/env";
+import { isCronAuthorized } from "$lib/server/cron";
+import { RANKING_TYPES } from "$lib/rankings";
 
 export const POST: RequestHandler = async ({ request }) => {
-  const authHeader = request.headers.get("authorization");
-
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!isCronAuthorized(request)) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -21,7 +20,10 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const stats = await computeAllRankings();
 
-    const totalRankings = stats.hot + stats.trending + stats.new + stats.top;
+    const totalRankings = RANKING_TYPES.reduce(
+      (sum, type) => sum + stats[type],
+      0,
+    );
 
     await sql`
       UPDATE sync_logs SET
