@@ -6,13 +6,13 @@
   import type { RankedProject } from "$lib/types";
   import { page } from "$app/stores";
   import {
-    GitFork,
-    Download,
     Clock,
-    TrendingUp,
+    Download,
     Flame,
+    GitFork,
     Sparkles,
-    Trophy
+    TrendingUp,
+    Trophy,
   } from "lucide-svelte";
 
   interface Props {
@@ -26,25 +26,25 @@
     project,
     rank,
     showRankBadge = false,
-    class: className = ""
+    class: className = "",
   }: Props = $props();
 
   let user = $derived($page.data.user);
   let isStarred = $derived(
-    user?.starred_projects?.includes(project.id) ?? false
+    user?.starred_projects?.includes(project.id) ?? false,
   );
 
   const rankingIcons = {
     hot: Flame,
     trending: TrendingUp,
     new: Sparkles,
-    top: Trophy
+    top: Trophy,
   };
 
   let RankIcon = $derived(
     project.ranking?.ranking_type
       ? rankingIcons[project.ranking.ranking_type]
-      : null
+      : null,
   );
 </script>
 
@@ -52,14 +52,16 @@
   class={cn(
     "group relative overflow-hidden transition-all",
     "hover:shadow-md hover:border-primary/20",
-    className
+    className,
   )}
 >
   <div class="block p-5">
     {#if showRankBadge && rank}
       <div
-        class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center
-               rounded-full bg-primary/10 text-sm font-bold text-primary"
+        class="
+          absolute top-3 right-3 flex size-8 items-center justify-center
+          rounded-full bg-primary/10 text-sm font-bold text-primary
+        "
       >
         #{rank}
       </div>
@@ -70,13 +72,15 @@
         <img
           src={project.avatar_url || "/placeholder.svg"}
           alt=""
-          class="h-12 w-12 rounded-lg bg-muted object-cover"
+          class="size-12 rounded-lg bg-muted object-cover"
           loading="lazy"
         />
       {:else}
         <div
-          class="flex h-12 w-12 items-center justify-center rounded-lg 
-                 bg-primary/10 text-primary"
+          class="
+            flex size-12 items-center justify-center rounded-lg
+            bg-primary/10 text-primary
+          "
         >
           <span class="text-lg font-bold">
             {project.name.charAt(0).toUpperCase()}
@@ -88,8 +92,10 @@
         <div class="flex items-center gap-2">
           <a
             href="/project/{project.slug}"
-            class="truncate text-lg font-semibold text-foreground 
-                   group-hover:text-primary transition-colors"
+            class="
+              truncate text-lg font-semibold text-foreground
+              group-hover:text-primary transition-colors
+            "
           >
             {project.name}
           </a>
@@ -102,7 +108,7 @@
         </div>
 
         <p
-          class="mt-1 line-clamp-2 text-sm text-muted-foreground text-pretty"
+          class="mt-1 line-clamp-2 text-sm text-foreground/70 text-pretty"
         >
           {project.description || "No description available"}
         </p>
@@ -112,14 +118,16 @@
     <div class="mt-4 flex flex-wrap gap-1.5">
       {#each (project.topics || []).slice(0, 4) as topic}
         <span
-          class="rounded-full bg-secondary px-2 py-0.5 text-xs 
-                 text-secondary-foreground"
+          class="
+            rounded-full bg-secondary px-2 py-0.5 text-xs
+            text-secondary-foreground
+          "
         >
           {topic}
         </span>
       {/each}
       {#if project.topics && project.topics.length > 4}
-        <span class="text-xs text-muted-foreground">
+        <span class="text-xs text-foreground/60">
           +{project.topics.length - 4} more
         </span>
       {/if}
@@ -129,7 +137,7 @@
     <div
       class="mt-4 flex flex-wrap items-center justify-between gap-4"
     >
-      <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+      <div class="flex flex-wrap items-center gap-4 text-sm text-foreground/70">
         <!-- Replace Star icon with interactive StarButton -->
         <StarButton
           projectId={project.id}
@@ -140,18 +148,18 @@
           count={project.stars}
         />
         <div class="flex items-center gap-1" title="Forks">
-          <GitFork class="h-4 w-4" />
+          <GitFork class="size-4" />
           <span>{formatNumber(project.forks)}</span>
         </div>
         {#if project.total_downloads > 0}
           <div class="flex items-center gap-1" title="Downloads">
-            <Download class="h-4 w-4" />
+            <Download class="size-4" />
             <span>{formatNumber(project.total_downloads)}</span>
           </div>
         {/if}
         {#if project.last_commit_at}
           <div class="flex items-center gap-1" title="Last updated">
-            <Clock class="h-4 w-4" />
+            <Clock class="size-4" />
             <span>{timeAgo(project.last_commit_at)}</span>
           </div>
         {/if}
@@ -167,8 +175,10 @@
 
     {#if project.ranking?.score_breakdown}
       <div
-        class="mt-3 flex items-center gap-2 border-t pt-3 text-xs 
-               text-muted-foreground"
+        class="
+          mt-3 flex items-center gap-2 border-t pt-3 text-xs
+          text-foreground/60
+        "
       >
         {#if RankIcon}
           <RankIcon class="h-3.5 w-3.5 text-primary" />

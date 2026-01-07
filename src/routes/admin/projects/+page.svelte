@@ -4,18 +4,18 @@
   import Button from "$lib/components/ui/button.svelte";
   import Badge from "$lib/components/ui/badge.svelte";
   import Input from "$lib/components/ui/input.svelte";
-  import { formatNumber, timeAgo } from "$lib/utils";
+  import { cn, formatNumber, timeAgo } from "$lib/utils";
   import { enhance } from "$app/forms";
   import {
-    Star,
-    GitFork,
-    ExternalLink,
-    Trash2,
-    Award,
     Archive,
-    Search,
+    Award,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    ExternalLink,
+    GitFork,
+    Search,
+    Star,
+    Trash2,
   } from "lucide-svelte";
 
   interface Props {
@@ -23,40 +23,37 @@
   }
 
   let { data }: Props = $props();
-  let searchQuery = $state("");
+  let query = $state("");
 
-  let filteredProjects = $derived(
-    searchQuery
-      ? data.projects.filter(
-          (p) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.description?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : data.projects
-  );
+  let filteredProjects = $derived(data.projects.filter(
+    (p) =>
+      !query || (
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.description?.toLowerCase().includes(query.toLowerCase())
+      ),
+  ));
+
+  export const snapshot = {
+    capture: () => ({ query }),
+    restore: (snapshot) => {
+      query = snapshot.query;
+    },
+  };
 </script>
 
 <div class="space-y-6">
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center 
-              sm:justify-between">
-    <div>
-      <h2 class="text-2xl font-bold">Projects</h2>
-      <p class="text-muted-foreground">
-        Manage {data.total} projects in the database
-      </p>
-    </div>
-  </div>
-
   <Card class="p-4">
     <div class="relative">
       <Search
-        class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 
-               text-muted-foreground"
+        class="
+          absolute left-3 top-1/2 size-4 -translate-y-1/2
+          text-muted-foreground
+        "
       />
       <Input
         type="search"
         placeholder="Filter projects..."
-        bind:value={searchQuery}
+        bind:value={query}
         class="pl-10"
       />
     </div>
@@ -76,137 +73,173 @@
         </thead>
         <tbody>
           {#each filteredProjects as project}
-            <tr class="border-b last:border-0 hover:bg-muted/50">
-              <td class="p-4">
-                <div class="flex items-center gap-3">
-                  {#if project.avatar_url}
-                    <img
-                      src={project.avatar_url || "/placeholder.svg"}
-                      alt=""
-                      class="h-10 w-10 rounded-lg bg-muted object-cover"
-                    />
-                  {:else}
-                    <div
-                      class="flex h-10 w-10 items-center justify-center 
-                             rounded-lg bg-primary/10 text-primary"
-                    >
-                      <span class="font-bold">
-                        {project.name.charAt(0).toUpperCase()}
-                      </span>
+            {#key project}
+              {@const name = project.name}
+              {@const owner = project.repository_owner}
+              {@const repo = project.repository_name}
+              {@const avatar = project.avatar_url}
+              {@const is_archived = project.is_archived}
+              {@const is_featured = project.is_featured}
+              {@const github_url = project.github_url}
+
+              <tr class="border-b last:border-0 hover:bg-muted/50">
+                <td class="p-4">
+                  <div class="flex items-center gap-3">
+                    {#if avatar}
+                      <img
+                        src={avatar}
+                        alt="Avatar image for the {owner}/{repo} project"
+                        class="size-10 rounded-lg bg-muted object-cover"
+                      />
+                    {:else}
+                      <div
+                        class="
+                          flex size-10 items-center justify-center
+                          rounded-lg bg-primary/10 text-primary
+                        "
+                      >
+                        <span class="font-bold">
+                          {name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    {/if}
+                    <div class="min-w-0">
+                      <p class="truncate font-medium">{name}</p>
+                      <p class="truncate text-xs text-muted-foreground">
+                        <a
+                          href={github_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="underline text-muted-foreground hover:text-foreground"
+                          aria-label="View the {owner}/{repo} project on GitHub"
+                        >{owner}/{repo}</a>
+                      </p>
                     </div>
-                  {/if}
-                  <div class="min-w-0">
-                    <p class="truncate font-medium">{project.name}</p>
-                    <p class="truncate text-xs text-muted-foreground">
-                      {project.repository_owner}/{project.repository_name}
-                    </p>
                   </div>
-                </div>
-              </td>
-              <td class="p-4">
-                <div class="flex items-center gap-3 text-sm">
-                  <span class="flex items-center gap-1">
-                    <Star class="h-4 w-4 text-muted-foreground" />
-                    {formatNumber(project.stars)}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <GitFork class="h-4 w-4 text-muted-foreground" />
-                    {formatNumber(project.forks)}
-                  </span>
-                </div>
-              </td>
-              <td class="p-4">
-                <div class="flex flex-wrap gap-1">
-                  {#if project.is_featured}
-                    <Badge variant="default" class="text-xs">Featured</Badge>
-                  {/if}
-                  {#if project.is_archived}
-                    <Badge variant="secondary" class="text-xs">Archived</Badge>
-                  {/if}
-                  {#if project.is_user_submitted}
-                    <Badge variant="outline" class="text-xs">Community</Badge>
-                  {/if}
-                </div>
-              </td>
-              <td class="p-4 text-sm text-muted-foreground">
-                {timeAgo(project.updated_at)}
-              </td>
-              <td class="p-4">
-                <div class="flex items-center gap-1">
-                  <a
-                    href={project.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="rounded-md p-2 text-muted-foreground 
-                           hover:bg-secondary hover:text-foreground"
-                    aria-label="View on GitHub"
-                  >
-                    <ExternalLink class="h-4 w-4" />
-                  </a>
-
-                  <form method="POST" action="?/toggleFeatured" use:enhance>
-                    <input type="hidden" name="id" value={project.id} />
-                    <input
-                      type="hidden"
-                      name="is_featured"
-                      value={project.is_featured}
-                    />
-                    <button
-                      type="submit"
-                      class="rounded-md p-2 text-muted-foreground 
-                             hover:bg-secondary hover:text-foreground"
-                      aria-label={project.is_featured
-                        ? "Remove from featured"
-                        : "Add to featured"}
-                      title={project.is_featured
-                        ? "Remove from featured"
-                        : "Add to featured"}
+                </td>
+                <td class="p-4">
+                  <div class="flex items-center gap-3 text-sm">
+                    <span class="flex items-center gap-1">
+                      <Star class="size-4 text-muted-foreground" />
+                      {formatNumber(project.stars)}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <GitFork class="size-4 text-muted-foreground" />
+                      {formatNumber(project.forks)}
+                    </span>
+                  </div>
+                </td>
+                <td class="p-4">
+                  <div class="flex flex-wrap gap-1">
+                    {#if is_featured}
+                      <Badge variant="default" class="text-xs">Featured</Badge>
+                    {/if}
+                    {#if is_archived}
+                      <Badge variant="secondary" class="text-xs"
+                      >Archived</Badge>
+                    {/if}
+                    {#if project.is_user_submitted}
+                      <Badge variant="outline" class="text-xs">Community</Badge>
+                    {/if}
+                  </div>
+                </td>
+                <td class="p-4 text-sm text-muted-foreground">
+                  {timeAgo(project.updated_at)}
+                </td>
+                <td class="p-4">
+                  <div class="flex items-center gap-1">
+                    <a
+                      href={github_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="
+                        rounded-md p-2 text-muted-foreground
+                        hover:bg-secondary hover:text-foreground
+                      "
+                      aria-label="View on GitHub"
                     >
-                      <Award
-                        class="h-4 w-4 {project.is_featured
-                          ? 'text-primary'
-                          : ''}"
+                      <ExternalLink class="size-4" />
+                      <span class="sr-only" aria-hidden="true"
+                      >View the {owner}/{repo} repository on GitHub</span>
+                    </a>
+
+                    <form method="POST" action="?/toggleFeatured" use:enhance>
+                      <input type="hidden" name="id" value={project.id} />
+                      <input
+                        type="hidden"
+                        name="is_featured"
+                        value={is_featured}
                       />
-                    </button>
-                  </form>
+                      <button
+                        type="submit"
+                        class="
+                          rounded-md p-2 text-muted-foreground
+                          hover:bg-secondary hover:text-foreground
+                        "
+                        aria-label={is_featured
+                          ? "Remove from featured"
+                          : "Add to featured"}
+                        title={is_featured
+                          ? "Remove from featured"
+                          : "Add to featured"}
+                      >
+                        <Award
+                          class={cn([
+                            "size-4",
+                            is_featured && "text-primary",
+                          ])}
+                        />
+                      </button>
+                    </form>
 
-                  <form method="POST" action="?/toggleArchived" use:enhance>
-                    <input type="hidden" name="id" value={project.id} />
-                    <input
-                      type="hidden"
-                      name="is_archived"
-                      value={project.is_archived}
-                    />
-                    <button
-                      type="submit"
-                      class="rounded-md p-2 text-muted-foreground 
-                             hover:bg-secondary hover:text-foreground"
-                      aria-label={project.is_archived ? "Unarchive" : "Archive"}
-                      title={project.is_archived ? "Unarchive" : "Archive"}
-                    >
-                      <Archive
-                        class="h-4 w-4 {project.is_archived
-                          ? 'text-warning'
-                          : ''}"
+                    <form method="POST" action="?/toggleArchived" use:enhance>
+                      <input type="hidden" name="id" value={project.id} />
+                      <input
+                        type="hidden"
+                        name="is_archived"
+                        value={project.is_archived}
                       />
-                    </button>
-                  </form>
+                      <button
+                        type="submit"
+                        class="
+                          rounded-md p-2 text-muted-foreground
+                          hover:bg-secondary hover:text-foreground
+                        "
+                        aria-label={project.is_archived
+                          ? "Unarchive"
+                          : "Archive"}
+                        title={project.is_archived
+                          ? "Unarchive"
+                          : "Archive"}
+                      >
+                        <Archive
+                          class="
+                            size-4 {project.is_archived
+                            ? 'text-warning'
+                            : ''}
+                          "
+                        />
+                      </button>
+                    </form>
 
-                  <form method="POST" action="?/delete" use:enhance>
-                    <input type="hidden" name="id" value={project.id} />
-                    <button
-                      type="submit"
-                      class="rounded-md p-2 text-muted-foreground 
-                             hover:bg-destructive/10 hover:text-destructive"
-                      aria-label="Delete project"
-                      title="Delete project"
-                    >
-                      <Trash2 class="h-4 w-4" />
-                    </button>
-                  </form>
-                </div>
-              </td>
-            </tr>
+                    <form method="POST" action="?/delete" use:enhance>
+                      <input type="hidden" name="id" value={project.id} />
+                      <button
+                        type="submit"
+                        class="
+                          rounded-md p-2 text-muted-foreground
+                          hover:bg-destructive/10 hover:text-destructive
+                        "
+                        aria-label="Delete project"
+                        title="Delete project"
+                      >
+                        <Trash2 class="size-4" />
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {/key}
           {/each}
         </tbody>
       </table>
@@ -223,8 +256,9 @@
             size="sm"
             href="/admin/projects?page={data.page - 1}"
             disabled={data.page <= 1}
+            data-sveltekit-preload-data
           >
-            <ChevronLeft class="h-4 w-4" />
+            <ChevronLeft class="size-4" />
             Previous
           </Button>
           <Button
@@ -234,7 +268,7 @@
             disabled={data.page >= data.totalPages}
           >
             Next
-            <ChevronRight class="h-4 w-4" />
+            <ChevronRight class="size-4" />
           </Button>
         </div>
       </div>

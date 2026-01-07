@@ -163,9 +163,9 @@ export async function upsertProject(repo: GitHubRepo): Promise<number | null> {
         ) VALUES (
           ${slug}, ${repo.name}, ${repo.description}, ${repo.html_url},
           ${repo.homepage}, ${repo.owner.login}, ${repo.name},
-          ${repo.stargazers_count}, ${repo.forks_count}, 
-          ${repo.watchers_count}, ${repo.open_issues_count}, 
-          ${repo.license?.name || null}, ${repo.topics}, 
+          ${repo.stargazers_count}, ${repo.forks_count},
+          ${repo.watchers_count}, ${repo.open_issues_count},
+          ${repo.license?.name || null}, ${repo.topics},
           ${repo.owner.avatar_url}, ${repo.archived},
           ${repo.created_at}, ${repo.pushed_at}, NOW(),
           true, ${repo.license !== null}
@@ -183,7 +183,7 @@ export async function upsertProject(repo: GitHubRepo): Promise<number | null> {
 export async function recordSnapshot(projectId: number): Promise<void> {
   try {
     const project = await sql`
-      SELECT stars, forks, watchers, open_issues, weekly_downloads, 
+      SELECT stars, forks, watchers, open_issues, weekly_downloads,
              contributors_count
       FROM projects WHERE id = ${projectId}
     `;
@@ -218,6 +218,15 @@ export async function runGitHubSync(maxProjects = 100): Promise<{
     RETURNING id
   `;
   const syncLogId = syncLog[0].id;
+  let cancelled = false;
+  const perPage = Math.min(Math.max(maxProjects, 1), 100);
+
+  async function isCancelled(): Promise<boolean> {
+    const status = await sql`
+      SELECT status FROM sync_logs WHERE id = ${syncLogId}
+    `;
+    return status[0]?.status === "cancelled";
+  }
 
   try {
     const existingIds = new Set<string>();
@@ -226,9 +235,15 @@ export async function runGitHubSync(maxProjects = 100): Promise<{
     `;
     existingProjects.forEach((p) => existingIds.add(p.github_url));
 
-    const repos = await searchRustProjects("stars", "desc", maxProjects, 1);
+    const repos = await searchRustProjects("stars", "desc", perPage, 1);
+    let processed = 0;
 
     for (const repo of repos) {
+      processed++;
+      if (processed % 10 === 0 && await isCancelled()) {
+        cancelled = true;
+        break;
+      }
       if (repo.archived) continue;
 
       const wasExisting = existingIds.has(repo.html_url);
@@ -246,32 +261,56 @@ export async function runGitHubSync(maxProjects = 100): Promise<{
       }
     }
 
-    const recentRepos = await searchRustProjects("updated", "desc", 50, 1);
+    const recentLimit = Math.min(50, perPage);
+    const recentRepos = await searchRustProjects(
+      "updated",
+      "desc",
+      recentLimit,
+      1,
+    );
+    try {
+      for (const repo of recentRepos) {
+        processed++;
+        if (processed % 10 === 0 && await isCancelled()) {
+          cancelled = true;
+          break;
+        }
+        if (repo.archived) continue;
+        if (repo.stargazers_count < 10) continue;
 
-    for (const repo of recentRepos) {
-      if (repo.archived) continue;
-      if (repo.stargazers_count < 10) continue;
+        const wasExisting = existingIds.has(repo.html_url);
+        const projectId = await upsertProject(repo);
 
-      const wasExisting = existingIds.has(repo.html_url);
-      const projectId = await upsertProject(repo);
-
-      if (projectId) {
-        if (!wasExisting && !existingIds.has(repo.html_url)) {
-          stats.added++;
-          existingIds.add(repo.html_url);
+        if (projectId) {
+          if (!wasExisting && !existingIds.has(repo.html_url)) {
+            stats.added++;
+            existingIds.add(repo.html_url);
+          }
         }
       }
+    } finally {
+      if (cancelled) {
+        await sql`
+          UPDATE sync_logs SET
+            status = 'cancelled',
+            projects_added = ${stats.added},
+            projects_updated = ${stats.updated},
+            errors_count = ${stats.errors},
+            completed_at = NOW()
+          WHERE id = ${syncLogId}
+        `;
+      } else {
+        await sql`
+          UPDATE sync_logs SET
+            status = 'completed',
+            projects_added = ${stats.added},
+            projects_updated = ${stats.updated},
+            errors_count = ${stats.errors},
+            completed_at = NOW()
+          WHERE id = ${syncLogId}
+        `;
+      }
     }
-
-    await sql`
-      UPDATE sync_logs SET
-        status = 'completed',
-        projects_added = ${stats.added},
-        projects_updated = ${stats.updated},
-        errors_count = ${stats.errors},
-        completed_at = NOW()
-      WHERE id = ${syncLogId}
-    `;
   } catch (error) {
     console.error("Sync error:", error);
 

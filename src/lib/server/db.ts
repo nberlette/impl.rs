@@ -1,7 +1,8 @@
-import { neon } from "@neondatabase/serverless";
+import { type FullQueryResults, neon } from "@neondatabase/serverless";
 import { DATABASE_URL } from "$env/static/private";
 
-let _sql: ReturnType<typeof neon> = null!;
+let _sql: SqlTag = null!;
+let _sqlFull: ExtTag | null;
 
 export function getSql() {
   if (!_sql) {
@@ -16,11 +17,32 @@ export function getSql() {
     }
 
     _sql = neon(dbUrl);
+    // @ts-ignore readonly re-assignment
+    _sql.full = _sqlFull ??= neon(dbUrl, { fullResults: true });
   }
   return _sql;
 }
 
-export type Sql = ReturnType<typeof neon>;
+type SqlTag = ReturnType<typeof neon<false, false>>;
+type ExtTag = ReturnType<typeof neon<false, true>>;
+
+export type FullResults<T extends Record<string, unknown>> =
+  & Omit<FullQueryResults<false>, "rows">
+  & {
+    readonly rows: T[];
+  };
+
+export interface SqlFull extends ExtTag {
+  <T extends Record<string, any>>(
+    ...args: Parameters<ExtTag>
+  ): Promise<FullResults<T>>;
+}
+
+export interface Sql extends SqlTag {
+  <T extends Record<string, any>>(...args: Parameters<SqlTag>): Promise<T[]>;
+
+  readonly full: SqlFull;
+}
 
 export const sql: Sql = new Proxy((() => {}) as {} as Sql, {
   get(_, prop) {

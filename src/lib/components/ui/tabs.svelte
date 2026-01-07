@@ -19,7 +19,7 @@
     tabs,
     value = $bindable(tabs[0]?.value ?? ""),
     class: className = "",
-    onchange
+    onchange,
   }: Props = $props();
 
   function handleClick(tabValue: string) {
@@ -32,7 +32,7 @@
   class={cn(
     "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1",
     "text-muted-foreground",
-    className
+    className,
   )}
   role="tablist"
 >
@@ -48,7 +48,7 @@
         "disabled:pointer-events-none disabled:opacity-50",
         value === tab.value
           ? "bg-background text-foreground shadow-sm"
-          : "hover:text-foreground"
+          : "hover:text-foreground",
       )}
       onclick={() => handleClick(tab.value)}
     >

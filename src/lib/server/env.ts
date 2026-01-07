@@ -1,7 +1,9 @@
 import * as env from "$env/static/private";
 
 function getEnv(key: string, fallback = ""): string {
-  if (key in env && env?.[key as keyof typeof env]) return env[key as keyof typeof env];
+  if (key in env && env?.[key as keyof typeof env]) {
+    return env[key as keyof typeof env];
+  }
   // Check process.env first (standard Node.js)
   if (typeof process !== "undefined" && process.env?.[key]) {
     return process.env[key];
@@ -21,7 +23,13 @@ function getEnv(key: string, fallback = ""): string {
 }
 
 export const DATABASE_URL = getEnv("DATABASE_URL");
-export const GITHUB_CLIENT_ID = getEnv("GITHUB_CLIENT_ID");
-export const GITHUB_CLIENT_SECRET = getEnv("GITHUB_CLIENT_SECRET");
+export const GITHUB_CLIENT_ID = getEnv(
+  "GH_CLIENT_ID",
+  getEnv("GITHUB_CLIENT_ID"),
+);
+export const GITHUB_CLIENT_SECRET = getEnv(
+  "GH_CLIENT_SECRET",
+  getEnv("GITHUB_CLIENT_SECRET"),
+);
 export const CRON_SECRET = getEnv("CRON_SECRET");
 export const NODE_ENV = getEnv("NODE_ENV", "development");

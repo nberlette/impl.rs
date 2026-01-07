@@ -159,6 +159,7 @@ export async function runCratesSync(limit = 50): Promise<{
   errors: number;
 }> {
   const stats = { synced: 0, errors: 0 };
+  const maxProjects = Math.max(limit, 1);
 
   const syncLog = await sql`
     INSERT INTO sync_logs (sync_type, status)
@@ -166,16 +167,30 @@ export async function runCratesSync(limit = 50): Promise<{
     RETURNING id
   `;
   const syncLogId = syncLog[0].id;
+  let cancelled = false;
+
+  async function isCancelled(): Promise<boolean> {
+    const status = await sql`
+      SELECT status FROM sync_logs WHERE id = ${syncLogId}
+    `;
+    return status[0]?.status === "cancelled";
+  }
 
   try {
     const projects = await sql`
       SELECT id FROM projects
       WHERE is_archived = false
       ORDER BY stars DESC
-      LIMIT ${limit}
+      LIMIT ${maxProjects}
     `;
 
+    let processed = 0;
     for (const project of projects) {
+      processed++;
+      if (processed % 10 === 0 && await isCancelled()) {
+        cancelled = true;
+        break;
+      }
       const success = await syncCratesData(project.id);
 
       if (success) {
@@ -187,14 +202,25 @@ export async function runCratesSync(limit = 50): Promise<{
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    await sql`
-      UPDATE sync_logs SET
-        status = 'completed',
-        projects_updated = ${stats.synced},
-        errors_count = ${stats.errors},
-        completed_at = NOW()
-      WHERE id = ${syncLogId}
-    `;
+    if (cancelled) {
+      await sql`
+        UPDATE sync_logs SET
+          status = 'cancelled',
+          projects_updated = ${stats.synced},
+          errors_count = ${stats.errors},
+          completed_at = NOW()
+        WHERE id = ${syncLogId}
+      `;
+    } else {
+      await sql`
+        UPDATE sync_logs SET
+          status = 'completed',
+          projects_updated = ${stats.synced},
+          errors_count = ${stats.errors},
+          completed_at = NOW()
+        WHERE id = ${syncLogId}
+      `;
+    }
   } catch (error) {
     console.error("Crates sync error:", error);
 

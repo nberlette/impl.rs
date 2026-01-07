@@ -4,7 +4,7 @@
   import Input from "$lib/components/ui/input.svelte";
   import Textarea from "$lib/components/ui/textarea.svelte";
   import Card from "$lib/components/ui/card.svelte";
-  import { Send, CheckCircle, Github, Info } from "lucide-svelte";
+  import { CheckCircle, Github, Info, Send } from "lucide-svelte";
   import { enhance } from "$app/forms";
 
   interface Props {
@@ -13,6 +13,21 @@
 
   let { form }: Props = $props();
   let submitting = $state(false);
+
+  let data = $derived.by(() => ({
+    github_url: "https://github.com/nberlette/impl.rs",
+    name: "",
+    email: "",
+    reason: "",
+    ...form,
+  }));
+
+  export const snapshot = {
+    capture: () => data,
+    restore(snapshot) {
+      data = form = { ...data, ...snapshot };
+    },
+  };
 </script>
 
 <svelte:head>
@@ -26,10 +41,12 @@
 <div class="mx-auto max-w-2xl px-4 py-12">
   <div class="mb-8 text-center">
     <div
-      class="mx-auto mb-4 flex h-14 w-14 items-center justify-center 
-             rounded-xl bg-primary/10"
+      class="
+        mx-auto mb-4 flex size-14 items-center justify-center
+        rounded-xl bg-primary/10
+      "
     >
-      <Send class="h-7 w-7 text-primary" />
+      <Send class="size-7 text-primary" />
     </div>
     <h1 class="text-3xl font-bold text-balance">Submit a Rust Project</h1>
     <p class="mt-2 text-muted-foreground text-pretty">
@@ -41,15 +58,17 @@
   {#if form?.success}
     <Card class="p-8 text-center">
       <div
-        class="mx-auto mb-4 flex h-16 w-16 items-center justify-center 
-               rounded-full bg-success/10"
+        class="
+          mx-auto mb-4 flex size-16 items-center justify-center
+          rounded-full bg-success/10
+        "
       >
-        <CheckCircle class="h-8 w-8 text-success" />
+        <CheckCircle class="size-8 text-success" />
       </div>
       <h2 class="text-xl font-semibold">Thank You!</h2>
       <p class="mt-2 text-muted-foreground">
-        Your submission has been received and will be reviewed shortly. 
-        We appreciate your contribution to the Rust community!
+        Your submission has been received and will be reviewed shortly. We
+        appreciate your contribution to the Rust community!
       </p>
       <Button href="/" class="mt-6">Back to Home</Button>
     </Card>
@@ -68,8 +87,10 @@
       >
         {#if form?.error}
           <div
-            class="rounded-lg border border-destructive/50 bg-destructive/10 
-                   p-4 text-sm text-destructive"
+            class="
+              rounded-lg border border-destructive/50 bg-destructive/10
+              p-4 text-sm text-destructive
+            "
           >
             {form.error}
           </div>
@@ -81,8 +102,10 @@
           </label>
           <div class="relative">
             <Github
-              class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 
-                     text-muted-foreground"
+              class="
+                absolute left-3 top-1/2 size-4 -translate-y-1/2
+                text-muted-foreground
+              "
             />
             <Input
               id="github_url"
@@ -90,7 +113,7 @@
               type="url"
               placeholder="https://github.com/owner/repo"
               required
-              value={form?.github_url ?? ""}
+              bind:value={data.github_url}
               class="pl-10"
             />
           </div>
@@ -109,6 +132,7 @@
               name="name"
               type="text"
               placeholder="Jane Doe"
+              bind:value={data.name}
             />
           </div>
 
@@ -121,6 +145,7 @@
               name="email"
               type="email"
               placeholder="jane@example.com"
+              bind:value={data.email}
             />
             <p class="text-xs text-muted-foreground">
               We'll notify you when approved
@@ -138,12 +163,13 @@
             name="reason"
             placeholder="Tell us what makes this project special..."
             rows={4}
+            bind:value={data.reason}
           />
         </div>
 
         <div class="rounded-lg border bg-secondary/30 p-4">
           <div class="flex gap-3">
-            <Info class="h-5 w-5 shrink-0 text-primary" />
+            <Info class="size-5 shrink-0 text-primary" />
             <div class="text-sm text-muted-foreground">
               <p class="font-medium text-foreground">Submission Guidelines</p>
               <ul class="mt-2 list-inside list-disc space-y-1">

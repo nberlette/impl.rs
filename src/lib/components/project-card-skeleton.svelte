@@ -5,7 +5,7 @@
 
 <Card class="p-5">
   <div class="flex items-start gap-4">
-    <Skeleton class="h-12 w-12 rounded-lg" />
+    <Skeleton class="size-12 rounded-lg" />
     <div class="flex-1 space-y-2">
       <Skeleton class="h-5 w-1/3" />
       <Skeleton class="h-4 w-full" />
