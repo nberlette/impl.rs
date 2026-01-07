@@ -1,5 +1,5 @@
 import { sql } from "./db";
-import type { RankingFilter } from "$lib/types";
+import type { RankingType } from "$lib/types";
 
 interface ProjectMetrics {
   id: number;
@@ -51,13 +51,14 @@ function sigmoid(x: number): number {
 
 async function getProjectSnapshots(
   projectId: number,
-  days: number,
+  days: number = 1,
 ): Promise<SnapshotData[]> {
+  const interval = `${days} days`;
   const snapshots = await sql`
     SELECT stars, forks, recorded_at
     FROM project_snapshots
     WHERE project_id = ${projectId}
-      AND recorded_at > NOW() - INTERVAL '${days} days'
+      AND recorded_at > NOW() - INTERVAL '${interval}'
     ORDER BY recorded_at ASC
   `;
   return snapshots as SnapshotData[];
@@ -313,7 +314,7 @@ async function calculateTopScore(
 
 async function saveRanking(
   projectId: number,
-  rankingType: RankingFilter,
+  rankingType: RankingType,
   score: number,
   position: number,
   breakdown: Record<string, number>,
@@ -340,7 +341,7 @@ export async function computeAllRankings(): Promise<{
   const stats = { hot: 0, trending: 0, new: 0, top: 0 };
 
   const projects = await sql`
-    SELECT 
+    SELECT
       id, stars, forks, watchers, open_issues, contributors_count,
       total_downloads, weekly_downloads, dependents_count, release_count,
       commit_frequency, created_at, github_created_at, last_commit_at,

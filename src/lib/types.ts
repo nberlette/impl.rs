@@ -1,3 +1,5 @@
+import type { RankingFilter, RankingType } from "$lib/rankings";
+
 export interface Project {
   id: number;
   slug: string;
@@ -44,24 +46,26 @@ export interface Project {
 export interface ProjectRanking {
   id: number;
   project_id: number;
-  ranking_type: "hot" | "trending" | "new" | "top";
+  ranking_type: RankingType;
   score: number;
   rank_position: number;
-  score_breakdown: {
-    star_velocity?: number;
-    activity_score?: number;
-    community_score?: number;
-    growth_rate?: number;
-    acceleration?: number;
-    release_activity?: number;
-    age_penalty?: number;
-    initial_traction?: number;
-    quality_signals?: number;
-    total_stars?: number;
-    maturity?: number;
-    ecosystem_impact?: number;
-  } | null;
+  score_breakdown: Partial<ScoreBreakdown> | null;
   computed_at: string;
+}
+
+export interface ScoreBreakdown {
+  star_velocity: number;
+  activity_score: number;
+  community_score: number;
+  growth_rate: number;
+  acceleration: number;
+  release_activity: number;
+  age_penalty: number;
+  initial_traction: number;
+  quality_signals: number;
+  total_stars: number;
+  maturity: number;
+  ecosystem_impact: number;
 }
 
 export interface RankedProject extends Project {
@@ -80,6 +84,15 @@ export interface UserSubmission {
   reviewed_at: string | null;
   review_notes: string | null;
   created_at: string;
+}
+
+export interface AdminStats {
+  totalProjects: number;
+  pendingSubmissions: number;
+  recentSyncs: number;
+  totalAdmins: number;
+  projectsThisWeek: number;
+  projectsThisMonth: number;
 }
 
 export interface AdminUser {
@@ -103,13 +116,15 @@ export interface SyncLog {
   completed_at: string | null;
 }
 
-export interface SiteSetting {
+export interface SiteSetting<T = unknown> {
   id: number;
   key: string;
-  value: unknown;
+  value: T;
   description: string | null;
   updated_at: string;
 }
+
+export type SiteSettings = SiteSetting[];
 
 export interface User {
   id: number;
@@ -123,4 +138,4 @@ export interface User {
   updated_at: string;
 }
 
-export type RankingFilter = "hot" | "trending" | "new" | "top";
+export type { RankingFilter, RankingType };

@@ -1,7 +1,6 @@
 <script lang="ts">
   import Tabs from "$lib/components/ui/tabs.svelte";
-  import { Flame, TrendingUp, Sparkles, Trophy } from "lucide-svelte";
-  import type { Snippet } from "svelte";
+  import { RANKING_FILTER_TABS } from "$lib/rankings";
   import type { RankingFilter } from "$lib/types";
 
   interface Props {
@@ -11,12 +10,7 @@
 
   let { value = $bindable("hot"), onchange }: Props = $props();
 
-  const tabs = [
-    { value: "hot", label: "Hot" },
-    { value: "trending", label: "Trending" },
-    { value: "new", label: "New" },
-    { value: "top", label: "Top" }
-  ];
+  const tabs = [...RANKING_FILTER_TABS];
 
   function handleChange(newValue: string) {
     value = newValue as RankingFilter;
@@ -24,4 +18,4 @@
   }
 </script>
 
-<Tabs {tabs} {value} onchange={handleChange} class="w-full sm:w-auto" />
+<Tabs {tabs} bind:value onchange={handleChange} class="w-full sm:w-auto" />
