@@ -63,8 +63,6 @@
   <meta property="description" content={description} />
 </svelte:head>
 
-
-
 <div class="flex min-h-screen bg-background">
   <aside
     class={cn(

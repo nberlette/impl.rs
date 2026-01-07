@@ -35,16 +35,20 @@
   let menu: HTMLDivElement | undefined;
 </script>
 
-<svelte:document on:visibilitychange={closeMenu} onkeydown={closeMenu} onclick={(e) => {
-  const { x, y, currentTarget: doc } = e;
-  const elements = doc.elementsFromPoint(x, y);
-  // check if the click is outside the user menu
-  if (menu && !elements.includes(menu)) {
-    closeMenu(); // if so... then close the menu, trick!
-    // prevent other side-effects from occurring
-    return false;
-  }
-}} />
+<svelte:document
+  on:visibilitychange={closeMenu}
+  onkeydown={closeMenu}
+  onclick={(e) => {
+    const { x, y, currentTarget: doc } = e;
+    const elements = doc.elementsFromPoint(x, y);
+    // check if the click is outside the user menu
+    if (menu && !elements.includes(menu)) {
+      closeMenu(); // if so... then close the menu, trick!
+      // prevent other side-effects from occurring
+      return false;
+    }
+  }}
+/>
 
 <div class={["relative", className]} bind:this={menu}>
   {#if user}
