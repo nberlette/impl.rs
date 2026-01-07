@@ -24,34 +24,29 @@ export const actions: Actions = {
 
     try {
       const existing = await sql`
-        SELECT id FROM user_submissions 
-        WHERE github_url = ${github_url} AND status = 'pending'
+        SELECT * FROM user_submissions
+        WHERE github_url = ${github_url}
         LIMIT 1
       `;
 
       if (existing.length > 0) {
-        return fail(400, {
-          error:
-            "This project has already been submitted and is pending review",
-          github_url,
-        });
-      }
+        let error = "This project is already ";
+        if (existing[0].status === "pending") {
+          error += "pending review. Check back soon!";
+        } else if (existing[0].status === "approved") {
+          error += "approved and in our database!";
+        } else {
+          error =
+            "This project was previously submitted, but appears to have been rejected. If you feel this is an error, please contact us!";
+        }
 
-      const existingProject = await sql`
-        SELECT id FROM projects WHERE github_url = ${github_url} LIMIT 1
-      `;
-
-      if (existingProject.length > 0) {
-        return fail(400, {
-          error: "This project is already in our database",
-          github_url,
-        });
+        return fail(400, { error, github_url });
       }
 
       await sql`
-        INSERT INTO user_submissions 
+        INSERT INTO user_submissions
         (github_url, submitted_by_email, submitted_by_name, reason)
-        VALUES (${github_url}, ${submitted_by_email || null}, 
+        VALUES (${github_url}, ${submitted_by_email || null},
                 ${submitted_by_name || null}, ${reason || null})
       `;
 
