@@ -1,6 +1,6 @@
 <script lang="ts">
   import { formatNumber } from "$lib/utils";
-  import { Package, Star, Download, RefreshCw } from "lucide-svelte";
+  import { Download, Package, RefreshCw, Star } from "lucide-svelte";
 
   interface Props {
     totalProjects: number;
@@ -13,30 +13,30 @@
     totalProjects,
     totalStars,
     totalDownloads,
-    recentlyUpdated
+    recentlyUpdated,
   }: Props = $props();
 
   const stats = $derived([
     {
       label: "Projects",
       value: formatNumber(totalProjects),
-      icon: Package
+      icon: Package,
     },
     {
       label: "Total Stars",
       value: formatNumber(totalStars),
-      icon: Star
+      icon: Star,
     },
     {
       label: "Downloads",
       value: formatNumber(totalDownloads),
-      icon: Download
+      icon: Download,
     },
     {
       label: "Updated This Week",
       value: formatNumber(recentlyUpdated),
-      icon: RefreshCw
-    }
+      icon: RefreshCw,
+    },
   ]);
 </script>
 
@@ -46,14 +46,16 @@
   {#each stats as stat}
     <div class="flex items-center gap-3">
       <div
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg 
-               bg-primary/10 text-primary"
+        class="
+          flex size-10 shrink-0 items-center justify-center rounded-lg
+          bg-primary/10 text-primary
+        "
       >
-        <stat.icon class="h-5 w-5" />
+        <stat.icon class="size-5" />
       </div>
       <div>
         <p class="text-lg font-bold text-foreground">{stat.value}</p>
-        <p class="text-xs text-muted-foreground">{stat.label}</p>
+        <p class="text-xs text-foreground/70">{stat.label}</p>
       </div>
     </div>
   {/each}
