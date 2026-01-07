@@ -1,6 +1,18 @@
 import { sql } from "./db";
 import type { User } from "$lib/types";
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from "./env";
+import { Buffer } from "node:buffer";
+
+let DEFAULT_SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
+
+export function setDefaultSessionExpiry(ttl_ms: number): number {
+  ttl_ms = (ttl_ms = +ttl_ms) < 1e4 ? ttl_ms * 1e3 : ttl_ms;
+  DEFAULT_SESSION_DURATION = ttl_ms;
+}
+
+export function getDefaultSessionExpiry(): number {
+  return DEFAULT_SESSION_DURATION;
+}
 
 export function getGitHubAuthUrl(redirectUri: string): string {
   const params = new URLSearchParams({
@@ -77,7 +89,7 @@ export async function findOrCreateUser(
   if (existing.length > 0) {
     // Update access token and user info
     const updated = await sql`
-      UPDATE users 
+      UPDATE users
       SET github_access_token = ${accessToken},
           github_username = ${githubUser.login},
           name = ${githubUser.name},
@@ -93,7 +105,7 @@ export async function findOrCreateUser(
   // Create new user
   const created = await sql`
     INSERT INTO users (
-      github_id, github_username, name, email, 
+      github_id, github_username, name, email,
       avatar_url, github_access_token
     ) VALUES (
       ${githubUser.id}, ${githubUser.login}, ${githubUser.name},
@@ -124,9 +136,9 @@ export async function addStarredProject(
   projectId: number,
 ): Promise<void> {
   await sql`
-    UPDATE users 
+    UPDATE users
     SET starred_projects = array_append(
-      array_remove(starred_projects, ${projectId}), 
+      array_remove(starred_projects, ${projectId}),
       ${projectId}
     ),
     updated_at = NOW()
@@ -139,7 +151,7 @@ export async function removeStarredProject(
   projectId: number,
 ): Promise<void> {
   await sql`
-    UPDATE users 
+    UPDATE users
     SET starred_projects = array_remove(starred_projects, ${projectId}),
         updated_at = NOW()
     WHERE id = ${userId}
@@ -147,12 +159,15 @@ export async function removeStarredProject(
 }
 
 // Create a session token (simple JWT-like structure)
-export function createUserSession(user: User): string {
+export function createUserSession(
+  user: User,
+  expireIn = DEFAULT_SESSION_DURATION,
+): string {
   const payload = {
     id: user.id,
     github_id: user.github_id,
     username: user.github_username,
-    exp: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+    exp: Date.now() + expireIn, // 7 days
   };
   return Buffer.from(JSON.stringify(payload)).toString("base64");
 }
