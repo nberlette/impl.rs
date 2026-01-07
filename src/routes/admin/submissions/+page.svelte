@@ -8,10 +8,10 @@
   import { enhance } from "$app/forms";
   import {
     CheckCircle,
-    XCircle,
     Clock,
     ExternalLink,
-    Github
+    Github,
+    XCircle,
   } from "lucide-svelte";
 
   interface Props {
@@ -25,36 +25,29 @@
     { value: "pending", label: "Pending" },
     { value: "approved", label: "Approved" },
     { value: "rejected", label: "Rejected" },
-    { value: "all", label: "All" }
+    { value: "all", label: "All" },
   ];
 
   let filteredSubmissions = $derived(
     statusFilter === "all"
       ? data.submissions
-      : data.submissions.filter((s) => s.status === statusFilter)
+      : data.submissions.filter((s) => s.status === statusFilter),
   );
 
   const statusIcons = {
     pending: Clock,
     approved: CheckCircle,
-    rejected: XCircle
+    rejected: XCircle,
   };
 
   const statusVariants = {
     pending: "outline" as const,
     approved: "default" as const,
-    rejected: "destructive" as const
+    rejected: "destructive" as const,
   };
 </script>
 
 <div class="space-y-6">
-  <div>
-    <h2 class="text-2xl font-bold">Submissions</h2>
-    <p class="text-muted-foreground">
-      Review and moderate user-submitted projects
-    </p>
-  </div>
-
   <Tabs
     {tabs}
     value={statusFilter}
@@ -66,18 +59,27 @@
     <div class="space-y-4">
       {#each filteredSubmissions as submission}
         <Card class="p-5">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start 
-                      sm:justify-between">
+          <div
+            class="
+              flex flex-col gap-4 sm:flex-row sm:items-start
+              sm:justify-between
+            "
+          >
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <Github class="h-4 w-4 text-muted-foreground" />
+                <Github class="size-4 text-muted-foreground" />
                 <a
                   href={submission.github_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="truncate font-medium hover:text-primary"
                 >
-                  {submission.github_url.replace("https://github.com/", "")}
+                  {
+                    submission.github_url.replace(
+                      "https://github.com/",
+                      "",
+                    )
+                  }
                 </a>
                 <a
                   href={submission.github_url}
@@ -86,7 +88,7 @@
                   class="text-muted-foreground hover:text-foreground"
                   aria-label="Open in new tab"
                 >
-                  <ExternalLink class="h-4 w-4" />
+                  <ExternalLink class="size-4" />
                 </a>
               </div>
 
@@ -97,8 +99,10 @@
               {/if}
 
               <div
-                class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 
-                       text-xs text-muted-foreground"
+                class="
+                  mt-3 flex flex-wrap items-center gap-x-4 gap-y-1
+                  text-xs text-muted-foreground
+                "
               >
                 {#if submission.submitted_by_name}
                   <span>By: {submission.submitted_by_name}</span>
@@ -111,8 +115,10 @@
 
               {#if submission.review_notes}
                 <p
-                  class="mt-2 rounded-md bg-muted p-2 text-xs 
-                         text-muted-foreground"
+                  class="
+                    mt-2 rounded-md bg-muted p-2 text-xs
+                    text-muted-foreground
+                  "
                 >
                   Note: {submission.review_notes}
                 </p>
@@ -121,25 +127,35 @@
 
             <div class="flex items-center gap-2">
               <Badge variant={statusVariants[submission.status]}>
-                {@const SvelteComponent = statusIcons[submission.status]}
+                {@const               SvelteComponent = statusIcons[submission.status]}
                 <SvelteComponent
-                  class="mr-1 h-3 w-3"
+                  class="mr-1 size-3"
                 />
                 {submission.status}
               </Badge>
 
               {#if submission.status === "pending"}
-                <form method="POST" action="?/approve" use:enhance class="inline">
+                <form
+                  method="POST"
+                  action="?/approve"
+                  use:enhance
+                  class="inline"
+                >
                   <input type="hidden" name="id" value={submission.id} />
                   <Button size="sm" type="submit">
-                    <CheckCircle class="h-4 w-4" />
+                    <CheckCircle class="size-4" />
                     Approve
                   </Button>
                 </form>
-                <form method="POST" action="?/reject" use:enhance class="inline">
+                <form
+                  method="POST"
+                  action="?/reject"
+                  use:enhance
+                  class="inline"
+                >
                   <input type="hidden" name="id" value={submission.id} />
                   <Button variant="outline" size="sm" type="submit">
-                    <XCircle class="h-4 w-4" />
+                    <XCircle class="size-4" />
                     Reject
                   </Button>
                 </form>

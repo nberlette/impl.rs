@@ -1,7 +1,9 @@
 import type { PageServerLoad } from "./$types";
 import { sql } from "$lib/server/db";
+import { requireAdmin } from "$lib/server/admin-auth";
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ cookies }) => {
+  await requireAdmin(cookies);
   const [topByStars, topByDownloads, byLicense, byTopics, recentActivity] =
     await Promise.all([
       sql`
@@ -55,5 +57,9 @@ export const load: PageServerLoad = async () => {
     byLicense,
     byTopics,
     recentActivity,
+    metadata: {
+      title: "Analytics",
+      description: "Insights and metrics about your projects",
+    },
   };
 };

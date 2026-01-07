@@ -5,16 +5,16 @@
   import Badge from "$lib/components/ui/badge.svelte";
   import { formatNumber, timeAgo } from "$lib/utils";
   import {
-    Package,
-    Inbox,
-    RefreshCw,
-    Users,
-    TrendingUp,
-    Calendar,
     ArrowRight,
+    Calendar,
     CheckCircle,
+    Clock,
+    Inbox,
+    Package,
+    RefreshCw,
+    TrendingUp,
+    Users,
     XCircle,
-    Clock
   } from "lucide-svelte";
 
   interface Props {
@@ -28,36 +28,31 @@
       label: "Total Projects",
       value: formatNumber(data.stats?.totalProjects ?? 0),
       icon: Package,
-      color: "text-primary"
+      color: "text-primary",
     },
     {
       label: "Pending Submissions",
       value: formatNumber(data.stats?.pendingSubmissions ?? 0),
       icon: Inbox,
       color: "text-warning",
-      href: "/admin/submissions"
+      href: "/admin/submissions",
     },
     {
       label: "Added This Week",
       value: formatNumber(data.stats?.projectsThisWeek ?? 0),
       icon: TrendingUp,
-      color: "text-success"
+      color: "text-success",
     },
     {
       label: "Added This Month",
       value: formatNumber(data.stats?.projectsThisMonth ?? 0),
       icon: Calendar,
-      color: "text-primary"
-    }
+      color: "text-primary",
+    },
   ]);
 </script>
 
 <div class="space-y-6">
-  <div>
-    <h2 class="text-2xl font-bold">Dashboard</h2>
-    <p class="text-muted-foreground">Overview of your impl.rs platform</p>
-  </div>
-
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     {#each statCards as stat}
       <Card class="p-5">
@@ -67,7 +62,7 @@
               <span class="text-sm font-medium text-muted-foreground">
                 {stat.label}
               </span>
-              <stat.icon class="h-4 w-4 {stat.color}" />
+              <stat.icon class="size-4 {stat.color}" />
             </div>
             <p class="mt-2 text-3xl font-bold">{stat.value}</p>
           </a>
@@ -76,7 +71,7 @@
             <span class="text-sm font-medium text-muted-foreground">
               {stat.label}
             </span>
-            <stat.icon class="h-4 w-4 {stat.color}" />
+            <stat.icon class="size-4 {stat.color}" />
           </div>
           <p class="mt-2 text-3xl font-bold">{stat.value}</p>
         {/if}
@@ -90,24 +85,26 @@
         <h3 class="font-semibold">Pending Submissions</h3>
         <Button variant="ghost" size="sm" href="/admin/submissions">
           View all
-          <ArrowRight class="ml-1 h-4 w-4" />
+          <ArrowRight class="ml-1 size-4" />
         </Button>
       </div>
 
       {#if data.pendingSubmissions.length > 0}
         <ul class="space-y-3">
           {#each data.pendingSubmissions as submission}
+            {@const           name_and_owner = new URL(submission.github_url).pathname
+            .slice(1)}
             <li class="flex items-center justify-between rounded-md border p-3">
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-medium">
-                  {submission.github_url.replace("https://github.com/", "")}
+                  {name_and_owner}
                 </p>
                 <p class="text-xs text-muted-foreground">
                   {timeAgo(submission.created_at)}
                 </p>
               </div>
               <Badge variant="outline" class="ml-2">
-                <Clock class="mr-1 h-3 w-3" />
+                <Clock class="mr-1 size-3" />
                 Pending
               </Badge>
             </li>
@@ -125,7 +122,7 @@
         <h3 class="font-semibold">Recent Syncs</h3>
         <Button variant="ghost" size="sm" href="/admin/sync">
           View all
-          <ArrowRight class="ml-1 h-4 w-4" />
+          <ArrowRight class="ml-1 size-4" />
         </Button>
       </div>
 
@@ -140,12 +137,14 @@
                 </p>
               </div>
               <Badge
-                variant={sync.status === "completed" ? "default" : "destructive"}
+                variant={sync.status === "completed"
+                  ? "default"
+                  : "destructive"}
               >
                 {#if sync.status === "completed"}
-                  <CheckCircle class="mr-1 h-3 w-3" />
+                  <CheckCircle class="mr-1 size-3" />
                 {:else}
-                  <XCircle class="mr-1 h-3 w-3" />
+                  <XCircle class="mr-1 size-3" />
                 {/if}
                 {sync.status}
               </Badge>
@@ -164,15 +163,15 @@
     <h3 class="mb-4 font-semibold">Quick Actions</h3>
     <div class="flex flex-wrap gap-3">
       <Button href="/admin/sync">
-        <RefreshCw class="h-4 w-4" />
+        <RefreshCw class="size-4" />
         Trigger Sync
       </Button>
       <Button variant="outline" href="/admin/projects">
-        <Package class="h-4 w-4" />
+        <Package class="size-4" />
         Manage Projects
       </Button>
       <Button variant="outline" href="/admin/submissions">
-        <Inbox class="h-4 w-4" />
+        <Inbox class="size-4" />
         Review Submissions
       </Button>
     </div>
