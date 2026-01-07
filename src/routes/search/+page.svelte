@@ -1,57 +1,54 @@
 <script lang="ts">
+  import type { PageData } from "./$types";
   import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
   import ProjectCard from "$lib/components/project-card.svelte";
-  import ProjectCardSkeleton from "$lib/components/project-card-skeleton.svelte";
   import Input from "$lib/components/ui/input.svelte";
   import Button from "$lib/components/ui/button.svelte";
   import { Search, X } from "lucide-svelte";
-  import type { Project } from "$lib/types";
 
-  let query = $state($page.url.searchParams.get("q") || "");
-  let results: Project[] = $state([]);
-  let loading = $state(false);
-  let searched = $state(false);
+  interface Props {
+    data: PageData;
+  }
 
-  async function handleSearch() {
-    if (!query.trim()) return;
+  let { data }: Props = $props();
+  let queryInput = $state(data.query);
+  let hasQuery = $derived(data.query.trim().length > 0);
 
-    loading = true;
-    searched = true;
+  $effect(() => {
+    queryInput = data.query;
+  });
 
-    try {
-      const res = await fetch(
-        `/api/projects/search?q=${encodeURIComponent(query)}`
-      );
-      const data = await res.json();
-      results = data.projects || [];
-      goto(`/search?q=${encodeURIComponent(query)}`, { replaceState: true });
-    } catch (err) {
-      console.error("Search error:", err);
-      results = [];
-    } finally {
-      loading = false;
+  function handleSearch() {
+    const trimmedQuery = queryInput.trim();
+    if (!trimmedQuery) {
+      goto("/search", { replaceState: true });
+      return;
     }
+
+    const params = new URLSearchParams();
+    params.set("q", trimmedQuery);
+    goto(`/search?${params.toString()}`);
   }
 
   function clearSearch() {
-    query = "";
-    results = [];
-    searched = false;
+    queryInput = "";
     goto("/search", { replaceState: true });
   }
 
-  $effect(() => {
-    const q = $page.url.searchParams.get("q");
-    if (q && q !== query) {
-      query = q;
-      handleSearch();
+  function buildPageUrl(nextPage: number) {
+    const params = new URLSearchParams();
+    if (data.query.trim()) {
+      params.set("q", data.query.trim());
     }
-  });
+    if (nextPage > 1) {
+      params.set("page", String(nextPage));
+    }
+    return `/search?${params.toString()}`;
+  }
 </script>
 
 <svelte:head>
-  <title>{query ? `Search: ${query}` : "Search"} - impl.rs</title>
+  <title>{data.query ? `Search: ${data.query}` : "Search"} - impl.rs</title>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-12">
@@ -71,64 +68,98 @@
   >
     <div class="relative">
       <Search
-        class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 
-               text-muted-foreground"
+        class="
+          absolute left-4 top-1/2 size-5 -translate-y-1/2
+          text-muted-foreground
+        "
       />
       <Input
         type="search"
         placeholder="Search by name or description..."
-        bind:value={query}
+        bind:value={queryInput}
         class="h-12 pl-12 pr-24 text-base"
       />
-      {#if query}
+      {#if queryInput}
         <button
           type="button"
           onclick={clearSearch}
-          class="absolute right-20 top-1/2 -translate-y-1/2 p-1 
-                 text-muted-foreground hover:text-foreground"
+          class="
+            absolute right-20 top-1/2 -translate-y-1/2 p-1
+            text-muted-foreground hover:text-foreground
+          "
           aria-label="Clear search"
         >
-          <X class="h-4 w-4" />
+          <X class="size-4" />
         </button>
       {/if}
       <Button
         type="submit"
         size="sm"
         class="absolute right-2 top-1/2 -translate-y-1/2"
-        disabled={loading || !query.trim()}
+        disabled={!queryInput.trim()}
       >
         Search
       </Button>
     </div>
   </form>
 
-  {#if loading}
-    <div class="grid gap-4 sm:grid-cols-2">
-      {#each Array(4) as _}
-        <ProjectCardSkeleton />
-      {/each}
-    </div>
-  {:else if results.length > 0}
+  {#if data.projects.length > 0}
     <div>
       <p class="mb-4 text-sm text-muted-foreground">
-        Found {results.length} result{results.length === 1 ? "" : "s"} for 
-        "{query}"
+        Found {data.pagination.total} result{
+          data.pagination.total === 1 ? "" : "s"
+        } for "{data.query}"
       </p>
       <div class="grid gap-4 sm:grid-cols-2">
-        {#each results as project}
+        {#each data.projects as project}
           <ProjectCard {project} />
         {/each}
       </div>
+      {#if data.pagination.totalPages > 1}
+        <div
+          class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p class="text-sm text-foreground/70">
+            Showing {(data.pagination.page - 1) * data.pagination.limit + 1}
+            -
+            {
+              Math.min(
+                data.pagination.page * data.pagination.limit,
+                data.pagination.total,
+              )
+            }
+            of {data.pagination.total} results
+          </p>
+          <div class="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              href={buildPageUrl(data.pagination.page - 1)}
+              disabled={data.pagination.page <= 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              href={buildPageUrl(data.pagination.page + 1)}
+              disabled={data.pagination.page >= data.pagination.totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      {/if}
     </div>
-  {:else if searched}
+  {:else if hasQuery}
     <div class="rounded-lg border bg-card p-12 text-center">
       <p class="text-muted-foreground">
-        No projects found for "{query}". Try a different search term.
+        No projects found for "{data.query}". Try a different search term.
       </p>
     </div>
   {:else}
     <div class="rounded-lg border bg-card p-12 text-center">
-      <Search class="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
+      <Search class="mx-auto mb-4 size-8 text-muted-foreground" />
       <p class="text-muted-foreground">
         Enter a search term to find Rust projects
       </p>
