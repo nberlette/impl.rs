@@ -4,7 +4,7 @@
   import Card from "$lib/components/ui/card.svelte";
   import StarButton from "$lib/components/star-button.svelte";
   import type { RankedProject } from "$lib/types";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import {
     Clock,
@@ -34,11 +34,12 @@
     project = $bindable(),
     rank = $bindable(),
     showRankBadge = false,
+
     class: className = "",
     ...rest
   }: Props = $props();
 
-  let user = $derived($page.data.user);
+  let user = $derived(page.data.user);
 
   const rankingIcons = {
     hot: Flame,
@@ -143,7 +144,7 @@
             extension: { shortcodes: true, tasklist: true },
           })}
           <p
-            class="mt-1 line-clamp-2 text-sm text-foreground/70 text-pretty"
+            class="mt-1 line-clamp-3 text-sm text-foreground/70 text-pretty"
           >
             {@html description}
           </p>
@@ -182,7 +183,7 @@
           label="sr-only"
         />
         <a
-          class="select-none inline-flex items-center gap-1"
+          class="select-none inline-flex items-center gap-1 text-xs"
           title="Forks"
           href="https://github.com/{project.repository_owner}/{project.repository_name}/forks"
           target="_blank"
@@ -192,14 +193,18 @@
           <span>{formatNumber(project.forks)}</span>
         </a>
         {#if project.total_downloads > 0}
-          <div class="flex items-center gap-1 select-none" title="Downloads">
+          <a
+            href="/project/{project.slug}/#downloads"
+            class="inline-flex items-center gap-1 select-none text-xs"
+            title="{project.name} has been downloaded {formatNumber(project.total_downloads)} times!"
+          >
             <Download class="size-4" />
             <span>{formatNumber(project.total_downloads)}</span>
-          </div>
+          </a>
         {/if}
         {#if project.last_commit_at}
           <a
-            class="select-none inline-flex items-center gap-1"
+            class="select-none inline-flex items-center gap-1 text-xs"
             title="Last updated"
             href="https://github.com/{project.repository_owner}/{project.repository_name}/commits"
             target="_blank"
