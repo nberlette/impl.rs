@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Moon, Sun, Laptop as System } from "lucide-svelte";
+  import { Laptop as System, Moon, Sun } from "lucide-svelte";
   import { onMount } from "svelte";
   import type { SvelteComponentTyped } from "svelte";
   import type { ClassValue } from "svelte/elements";
@@ -38,7 +38,6 @@
     ...rest
   }: Props = $props();
 
-
   let Icon = $derived.by(() => {
     return themeOptions.find((o) => o.value === theme)?.icon ?? System;
   });
@@ -50,14 +49,17 @@
   let mediaQuery: MediaQueryList | null = null;
 
   function prefers(mode = "dark"): boolean {
-    return globalThis.matchMedia?.(`(prefers-color-scheme: ${mode})`)?.matches === true;
+    return globalThis.matchMedia?.(`(prefers-color-scheme: ${mode})`)
+      ?.matches === true;
   }
 
   function applyTheme(mode: ThemeMode) {
     if (typeof document !== "undefined") {
       const root = document.documentElement;
-      const isDark = mode === "dark" || (mode === "system" && prefers("dark"));
-      const isLight = mode === "light" || (mode === "system" && prefers("light"));
+      const isDark = mode === "dark" ||
+        (mode === "system" && prefers("dark"));
+      const isLight = mode === "light" ||
+        (mode === "system" && prefers("light"));
       root.classList.toggle("dark", isDark);
       root.classList.toggle("light", isLight);
       root.dataset.theme = mode;
@@ -79,12 +81,19 @@
   }
 
   onMount(() => {
-    const stored = globalThis.localStorage?.getItem(storageKey) as ThemeMode | null;
-    const legacyStored = globalThis.localStorage?.getItem("impl-rs-theme") as
+    const stored = globalThis.localStorage?.getItem(storageKey) as
+      | ThemeMode
+      | null;
+    const legacyStored = globalThis.localStorage?.getItem(
+      "impl-rs-theme",
+    ) as
       | ThemeMode
       | null;
     const initialTheme = stored ?? legacyStored;
-    if (initialTheme && themeOptions.some((option) => option.value === initialTheme)) {
+    if (
+      initialTheme &&
+      themeOptions.some((option) => option.value === initialTheme)
+    ) {
       theme = initialTheme;
     }
     applyTheme(theme);
@@ -99,7 +108,6 @@
       mediaQuery?.removeEventListener("change", handleChange);
     };
   });
-
 </script>
 
 <svelte:document

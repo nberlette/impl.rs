@@ -23,14 +23,14 @@
       (function () {
         try {
           var stored = localStorage.getItem("impl-rs-theme");
-          var theme =
-            stored === "light" || stored === "dark" || stored === "system"
-              ? stored
-              : "system";
-          var prefersDark =
-            window.matchMedia &&
+          var theme = stored === "light" || stored === "dark" ||
+              stored === "system"
+            ? stored
+            : "system";
+          var prefersDark = window.matchMedia &&
             window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var isDark = theme === "dark" || (theme === "system" && prefersDark);
+          var isDark = theme === "dark" ||
+            (theme === "system" && prefersDark);
           var root = document.documentElement;
           if (isDark) {
             root.classList.add("dark");

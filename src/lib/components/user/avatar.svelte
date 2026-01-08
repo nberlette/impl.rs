@@ -3,13 +3,17 @@
     sm: "size-8 rounded",
     md: "size-10 rounded-md",
     lg: "size-12 rounded-lg",
-    get default() { return this.md },
+    get default() {
+      return this.md;
+    },
   } as const satisfies Record<string, ClassValue>;
 
   export const variants = {
     circle: "bg-muted rounded-full!",
     muted: "bg-muted",
-    get default() { return this.circle }
+    get default() {
+      return this.circle;
+    },
   } as const satisfies Record<string, ClassValue>;
 
   export type Size = string & keyof typeof sizes;
@@ -55,7 +59,12 @@
 {:else if src}
   <img
     {src}
-    class={["rounded-full object-cover overflow-clip", sizes[size], variants[variant], className]}
+    class={[
+      "rounded-full object-cover overflow-clip",
+      sizes[size],
+      variants[variant],
+      className,
+    ]}
     loading={rest.loading ?? "lazy"}
     {...rest}
   />

@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { cn } from "$lib/utils";
   import { Star } from "lucide-svelte";
-    import type { ClassValue } from "svelte/elements";
+  import type { ClassValue } from "svelte/elements";
 
   const labelClasses = {
     "sr-only": "sr-only",
@@ -10,7 +10,6 @@
     "none": "hidden",
     "never": "hidden",
   };
-
 
   const sizeClasses = {
     sm: "h-7 px-2 text-xs gap-1",

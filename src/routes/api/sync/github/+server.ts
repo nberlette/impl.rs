@@ -17,8 +17,9 @@ export const POST: RequestHandler = async ({ request }) => {
     const limit = Math.max(Number(maxProjects) || 100, 1);
     const url = new URL(request.url);
     const modeParam = url.searchParams.get("mode");
-    const mode =
-      modeParam === "existing" || modeParam === "discover" ? modeParam : "all";
+    const mode = modeParam === "existing" || modeParam === "discover"
+      ? modeParam
+      : "all";
     const stats = await runGitHubSync(limit, mode);
 
     return json({
