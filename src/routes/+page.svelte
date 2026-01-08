@@ -4,10 +4,14 @@
   import FilterTabs from "$lib/components/filter-tabs.svelte";
   import StatsBanner from "$lib/components/stats-banner.svelte";
   import Button from "$lib/components/ui/button.svelte";
-  import { RANKING_FILTER_DESCRIPTIONS } from "$lib/rankings";
+  import {
+    RANKING_FILTER_DESCRIPTIONS,
+    RANKING_FILTER_TABS,
+  } from "$lib/rankings";
   import { goto } from "$app/navigation";
-  import type { RankingFilter } from "$lib/types";
+  import type { RankingFilter, strings } from "$lib/types";
   import { ArrowRight, Rocket } from "lucide-svelte";
+  import Tabs from "$lib/components/ui/tabs.svelte";
 
   interface Props {
     data: PageData;
@@ -16,8 +20,12 @@
   let { data }: Props = $props();
   let filter = $derived(data.filter as RankingFilter);
 
-  function handleFilterChange(newFilter: RankingFilter) {
-    filter = newFilter;
+  $effect(() => {
+    filter = data.filter as RankingFilter;
+  });
+
+  function handleFilterChange(newFilter: strings | RankingFilter) {
+    filter = newFilter as RankingFilter;
     const params = new URLSearchParams();
     params.set("filter", newFilter);
     goto(`/?${params.toString()}`, { replaceState: true, noScroll: true });
@@ -103,7 +111,11 @@
           {RANKING_FILTER_DESCRIPTIONS[filter]}
         </p>
       </div>
-      <FilterTabs bind:value={filter} onchange={handleFilterChange} />
+      <Tabs
+        bind:value={filter}
+        tabs={[...RANKING_FILTER_TABS]}
+        onchange={handleFilterChange}
+      />
     </div>
 
     {#if data.projects.length > 0}
