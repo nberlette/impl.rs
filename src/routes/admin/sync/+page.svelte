@@ -20,7 +20,9 @@
   }
 
   let { data, form }: Props = $props();
-  let syncing = $state(false);
+  let syncingAll = $state(false);
+  let syncingExisting = $state(false);
+  let syncingDiscover = $state(false);
   let computingRankings = $state(false);
 
   const statusConfig = {
@@ -50,24 +52,67 @@
       color: "text-foreground/70",
     },
   };
+
+  const syncTypeLabels: Record<string, string> = {
+    github: "GitHub (all)",
+    github_existing: "GitHub (existing)",
+    github_discover: "GitHub (discover)",
+    crates: "crates.io",
+  };
 </script>
 
 <div class="space-y-6">
   <div class="flex flex-wrap justify-end gap-2">
     <form
       method="POST"
-      action="?/triggerSync"
+      action="?/syncExisting"
       use:enhance={() => {
-        syncing = true;
+        syncingExisting = true;
         return async ({ update }) => {
           await update();
-          syncing = false;
+          syncingExisting = false;
         };
       }}
     >
-      <Button type="submit" disabled={syncing}>
-        <RefreshCw class="size-4 {syncing ? 'animate-spin' : ''}" />
-        {syncing ? "Syncing..." : "Sync Data"}
+      <Button type="submit" disabled={syncingExisting}>
+        <RefreshCw
+          class="size-4 {syncingExisting ? 'animate-spin' : ''}"
+        />
+        {syncingExisting ? "Syncing..." : "Sync Existing"}
+      </Button>
+    </form>
+    <form
+      method="POST"
+      action="?/discoverNew"
+      use:enhance={() => {
+        syncingDiscover = true;
+        return async ({ update }) => {
+          await update();
+          syncingDiscover = false;
+        };
+      }}
+    >
+      <Button type="submit" disabled={syncingDiscover} variant="outline">
+        <RefreshCw
+          class="size-4 {syncingDiscover ? 'animate-spin' : ''}"
+        />
+        {syncingDiscover ? "Discovering..." : "Discover New"}
+      </Button>
+    </form>
+    <form
+      method="POST"
+      action="?/triggerSync"
+      use:enhance={() => {
+        syncingAll = true;
+        return async ({ update }) => {
+          await update();
+          syncingAll = false;
+        };
+      }}
+    >
+      <Button type="submit" disabled={syncingAll} variant="secondary">
+        <RefreshCw class="size-4 {syncingAll ? 'animate-spin' : ''}" />
+        {syncingAll ? "Syncing..." : "Full Sync"}
       </Button>
     </form>
     <form
@@ -183,7 +228,9 @@
             <div class="flex items-center gap-3">
               <config.icon class="size-5 {config.color}" />
               <div>
-                <p class="font-medium capitalize">{log.sync_type} Sync</p>
+                <p class="font-medium">
+                  {syncTypeLabels[log.sync_type] || log.sync_type} Sync
+                </p>
                 <p class="text-xs text-muted-foreground">
                   {timeAgo(log.started_at)}
                   {#if log.completed_at}
