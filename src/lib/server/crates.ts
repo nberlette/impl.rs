@@ -40,7 +40,20 @@ interface ReverseDependencies {
   };
 }
 
+interface CrateDependencies {
+  dependencies: Array<{
+    crate_id: string;
+    kind: string;
+  }>;
+}
+
 const CRATES_API_BASE = "https://crates.io/api/v1";
+
+function encodeCrateName(name: string): string | null {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  return encodeURIComponent(trimmed);
+}
 
 async function fetchCrates<T>(endpoint: string): Promise<T | null> {
   try {
@@ -50,8 +63,14 @@ async function fetchCrates<T>(endpoint: string): Promise<T | null> {
       },
     });
 
+    if (response.status === 404) {
+      return null;
+    }
+
     if (!response.ok) {
-      console.error(`crates.io API error: ${response.status}`);
+      console.error(
+        `crates.io API error: ${response.status} ${response.statusText}`,
+      );
       return null;
     }
 
@@ -64,7 +83,9 @@ async function fetchCrates<T>(endpoint: string): Promise<T | null> {
 }
 
 export async function getCrateInfo(name: string): Promise<CrateInfo | null> {
-  return fetchCrates<CrateInfo>(`/crates/${name}`);
+  const encoded = encodeCrateName(name);
+  if (!encoded) return null;
+  return fetchCrates<CrateInfo>(`/crates/${encoded}`);
 }
 
 export async function searchCrates(
@@ -80,10 +101,21 @@ export async function searchCrates(
 export async function getReverseDependencies(
   crateName: string,
 ): Promise<number> {
+  const encoded = encodeCrateName(crateName);
+  if (!encoded) return 0;
   const result = await fetchCrates<ReverseDependencies>(
-    `/crates/${crateName}/reverse_dependencies`,
+    `/crates/${encoded}/reverse_dependencies`,
   );
   return result?.meta.total || 0;
+}
+
+export async function getDependenciesCount(crateName: string): Promise<number> {
+  const encoded = encodeCrateName(crateName);
+  if (!encoded) return 0;
+  const result = await fetchCrates<CrateDependencies>(
+    `/crates/${encoded}/dependencies`,
+  );
+  return result?.dependencies.length || 0;
 }
 
 export async function syncCratesData(projectId: number): Promise<boolean> {
@@ -100,6 +132,7 @@ export async function syncCratesData(projectId: number): Promise<boolean> {
     if (!crateName) {
       crateName = project[0].repository_name;
     }
+    if (!crateName?.trim()) return false;
 
     const crateInfo = await getCrateInfo(crateName);
 
@@ -136,17 +169,25 @@ async function updateProjectWithCrateData(
   crateName: string,
   crateInfo: CrateInfo,
 ): Promise<void> {
-  const dependents = await getReverseDependencies(crateName);
-  const hasDocsRs = crateInfo.crate.documentation?.includes("docs.rs") || true;
-  const lastVersion = crateInfo.versions[0];
+  const [dependents, dependencies] = await Promise.all([
+    getReverseDependencies(crateName),
+    getDependenciesCount(crateName),
+  ]);
+  const hasDocs = Boolean(crateInfo.crate.documentation);
+  const lastVersion = crateInfo.versions.reduce(
+    (latest, version) =>
+      !latest || version.created_at > latest.created_at ? version : latest,
+    null as CrateInfo["versions"][number] | null,
+  );
 
   await sql`
     UPDATE projects SET
       crates_io_name = ${crateName},
       total_downloads = ${crateInfo.crate.downloads},
-      weekly_downloads = ${crateInfo.crate.recent_downloads},
+      weekly_downloads = ${crateInfo.crate.recent_downloads ?? 0},
       dependents_count = ${dependents},
-      has_docs = ${hasDocsRs},
+      dependencies_count = ${dependencies},
+      has_docs = ${hasDocs},
       last_release_at = ${lastVersion?.created_at || null},
       release_count = ${crateInfo.versions.length},
       updated_at = NOW()
@@ -154,12 +195,11 @@ async function updateProjectWithCrateData(
   `;
 }
 
-export async function runCratesSync(limit = 50): Promise<{
+export async function runCratesSync(_limit = 50): Promise<{
   synced: number;
   errors: number;
 }> {
   const stats = { synced: 0, errors: 0 };
-  const maxProjects = Math.max(limit, 1);
 
   const syncLog = await sql`
     INSERT INTO sync_logs (sync_type, status)
@@ -181,7 +221,6 @@ export async function runCratesSync(limit = 50): Promise<{
       SELECT id FROM projects
       WHERE is_archived = false
       ORDER BY stars DESC
-      LIMIT ${maxProjects}
     `;
 
     let processed = 0;

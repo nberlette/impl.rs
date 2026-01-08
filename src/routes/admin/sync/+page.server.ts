@@ -35,7 +35,10 @@ export const actions: Actions = {
       );
       const limit = Math.max(Number(maxProjects) || 100, 1);
 
-      await logAuditAction(admin.id, "sync_triggered", "sync", -1, { limit });
+      await logAuditAction(admin.id, "sync_triggered", "sync", -1, {
+        limit,
+        mode: "all",
+      });
 
       const [github, crates] = await Promise.all([
         runGitHubSync(limit),
@@ -45,6 +48,7 @@ export const actions: Actions = {
       await logAuditAction(admin.id, "sync_completed", "sync", -1, {
         github,
         crates,
+        mode: "all",
       });
 
       return {
@@ -53,6 +57,64 @@ export const actions: Actions = {
       };
     } catch (err) {
       return fail(500, { error: "Failed to trigger sync" });
+    }
+  },
+  syncExisting: async ({ cookies }) => {
+    const { admin } = await requireAdmin(cookies);
+    try {
+      const maxProjects = await getSiteSettingValue(
+        "max_projects_per_sync",
+        100,
+      );
+      const limit = Math.max(Number(maxProjects) || 100, 1);
+
+      await logAuditAction(admin.id, "sync_triggered", "sync", -1, {
+        limit,
+        mode: "existing",
+      });
+
+      const github = await runGitHubSync(limit, "existing");
+
+      await logAuditAction(admin.id, "sync_completed", "sync", -1, {
+        github,
+        mode: "existing",
+      });
+
+      return {
+        success: true,
+        message: "Existing projects synced successfully",
+      };
+    } catch (err) {
+      return fail(500, { error: "Failed to sync existing projects" });
+    }
+  },
+  discoverNew: async ({ cookies }) => {
+    const { admin } = await requireAdmin(cookies);
+    try {
+      const maxProjects = await getSiteSettingValue(
+        "max_projects_per_sync",
+        100,
+      );
+      const limit = Math.max(Number(maxProjects) || 100, 1);
+
+      await logAuditAction(admin.id, "sync_triggered", "sync", -1, {
+        limit,
+        mode: "discover",
+      });
+
+      const github = await runGitHubSync(limit, "discover");
+
+      await logAuditAction(admin.id, "sync_completed", "sync", -1, {
+        github,
+        mode: "discover",
+      });
+
+      return {
+        success: true,
+        message: "New projects discovered successfully",
+      };
+    } catch (err) {
+      return fail(500, { error: "Failed to discover new projects" });
     }
   },
   computeRankings: async ({ cookies }) => {

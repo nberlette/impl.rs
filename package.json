@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@nick/braces": "jsr:^0.2.2",
+    "@nick/braces": "npm:@jsr/nick__braces@^0.2.2",
     "@nick/math": "jsr:^0.6.0",
     "@std/csv": "jsr:^1.0.6",
     "@std/toml": "jsr:^1.0.11",

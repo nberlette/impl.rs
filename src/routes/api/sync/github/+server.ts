@@ -15,7 +15,11 @@ export const POST: RequestHandler = async ({ request }) => {
       100,
     );
     const limit = Math.max(Number(maxProjects) || 100, 1);
-    const stats = await runGitHubSync(limit);
+    const url = new URL(request.url);
+    const modeParam = url.searchParams.get("mode");
+    const mode =
+      modeParam === "existing" || modeParam === "discover" ? modeParam : "all";
+    const stats = await runGitHubSync(limit, mode);
 
     return json({
       success: true,
@@ -34,5 +38,6 @@ export const GET: RequestHandler = async () => {
   return json({
     message: "Use POST to trigger GitHub sync",
     endpoint: "/api/sync/github",
+    modes: ["all", "existing", "discover"],
   });
 };
