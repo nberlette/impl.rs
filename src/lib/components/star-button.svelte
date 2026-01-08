@@ -1,28 +1,16 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { cn } from "$lib/utils";
   import { Star } from "lucide-svelte";
+    import type { ClassValue } from "svelte/elements";
 
-  interface Props {
-    projectId: number;
-    isStarred: boolean;
-    isAuthenticated: boolean;
-    size?: "sm" | "md" | "lg";
-    showCount?: boolean;
-    count?: number;
-    class?: string;
-  }
+  const labelClasses = {
+    "sr-only": "sr-only",
+    "lg-only": "not-lg:sr-only",
+    "none": "hidden",
+    "never": "hidden",
+  };
 
-  let {
-    projectId,
-    isStarred = $bindable(false),
-    isAuthenticated,
-    size = "md",
-    showCount = false,
-    count: displayCount = $bindable(0),
-    class: className = "",
-  }: Props = $props();
-
-  let isLoading = $state(false);
 
   const sizeClasses = {
     sm: "h-7 px-2 text-xs gap-1",
@@ -35,6 +23,37 @@
     md: "size-4",
     lg: "size-5",
   };
+
+  type Label = string & keyof typeof labelClasses;
+  type Size = string & keyof typeof sizeClasses;
+
+  interface Props {
+    projectId: number;
+    isStarred?: boolean;
+    isAuthenticated: boolean;
+    size?: Size;
+    label?: Label;
+    showCount?: boolean;
+    count?: number;
+    class?: ClassValue;
+
+    [rest: string]: unknown;
+  }
+
+  let {
+    projectId,
+    isStarred = $bindable(false),
+    isAuthenticated,
+    size = "md",
+    label = "lg-only",
+    showCount = false,
+    count: displayCount = $bindable(0),
+    class: className = "",
+    ...rest
+  }: Props = $props();
+
+  let isLoading = $state(false);
+  let hasFetchedStatus = $state(false);
 
   async function handleStar(e: MouseEvent) {
     e.preventDefault();
@@ -70,6 +89,25 @@
       isLoading = false;
     }
   }
+
+  async function loadStarStatus() {
+    if (!isAuthenticated || hasFetchedStatus) return;
+    hasFetchedStatus = true;
+    try {
+      const response = await fetch(`/api/star?projectId=${projectId}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      if (typeof data.starred === "boolean") {
+        isStarred = data.starred;
+      }
+    } catch (err) {
+      console.error("Star status error:", err);
+    }
+  }
+
+  onMount(() => {
+    void loadStarStatus();
+  });
 </script>
 
 <button
@@ -89,6 +127,7 @@
     ? isStarred ? "Unstar on GitHub" : "Star on GitHub"
     : "Sign in to star"}
   aria-label={isStarred ? "Unstar this project" : "Star this project"}
+  {...rest}
 >
   <Star
     class={cn(
@@ -100,6 +139,6 @@
   {#if showCount}
     <span>{displayCount.toLocaleString()}</span>
   {:else}
-    <span>{isStarred ? "Starred" : "Star"}</span>
+    <span class={labelClasses[label]}>{isStarred ? "Starred" : "Star"}</span>
   {/if}
 </button>
