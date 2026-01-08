@@ -66,8 +66,9 @@
 <div class="flex min-h-screen bg-background">
   <aside
     class={cn(
-      "fixed top-0 bottom-0 left-0 z-40 w-64 transform border-r bg-card transition-transform",
-      "lg:sticky lg:top-16! lg:z-auto lg:translate-x-0 [data-open]:translate-x-0 -translate-x-full",
+      "fixed inset-y-0 z-50 w-64 transform border-r bg-card transition-transform",
+      "lg:static lg:z-auto lg:translate-x-0 [data-open]:translate-x-0! -translate-x-full",
+      sidebarOpen && "translate-x-0!"
     )}
     data-open={sidebarOpen}
   >
@@ -95,47 +96,50 @@
       </button>
     </div>
 
-    <nav class="p-4 lg:sticky lg:top-16" aria-label="Admin navigation">
-      <ul class="space-y-1">
-        {#each navItems as item}
-          <li>
-            <a
-              href={item.href}
-              class={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm",
-                "font-medium transition-colors",
-                isActive(item.href)
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-              )}
-              onclick={() => (sidebarOpen = false)}
-            >
-              <item.icon class="size-4" />
-              {item.label}
-            </a>
-          </li>
-        {/each}
-      </ul>
+    <nav class="p-4 lg:sticky lg:top-16 h-[calc(100%-3rem)] lg:h-[calc(100%-4rem)]" aria-label="Admin navigation">
+      <div class="flex flex-col space-between h-full w-full">
+        <ul class="space-y-1">
+          {#each navItems as item}
+            <li>
+              <a
+                href={item.href}
+                class={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm",
+                  "font-medium transition-colors",
+                  isActive(item.href)
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+                onclick={() => (sidebarOpen = false)}
+              >
+                <item.icon class="size-4" />
+                {item.label}
+              </a>
+            </li>
+          {/each}
+        </ul>
+        <div class="h-full grow"></div>
+        <div class="w-full border-t py-4">
+          <a
+            href="/"
+            class="
+              flex items-center gap-3 rounded-md px-3 py-2 text-sm
+              font-medium text-muted-foreground transition-colors
+              hover:bg-secondary hover:text-foreground
+            "
+          >
+            <LogOut class="size-4" />
+            Exit Admin
+          </a>
+        </div>
+      </div>
     </nav>
 
-    <div class="absolute bottom-0 left-0 right-0 border-t p-4">
-      <a
-        href="/"
-        class="
-          flex items-center gap-3 rounded-md px-3 py-2 text-sm
-          font-medium text-muted-foreground transition-colors
-          hover:bg-secondary hover:text-foreground
-        "
-      >
-        <LogOut class="size-4" />
-        Exit Admin
-      </a>
-    </div>
   </aside>
 
   {#if sidebarOpen}
     <button
-      class="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+      class="fixed inset-0 z-49 bg-background/80 backdrop-blur-sm lg:hidden"
       onclick={() => (sidebarOpen = false)}
       aria-label="Close sidebar overlay"
     >
