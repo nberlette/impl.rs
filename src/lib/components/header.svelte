@@ -2,6 +2,7 @@
   import { cn } from "$lib/utils";
   import Button from "$lib/components/ui/button.svelte";
   import UserMenu from "$lib/components/user-menu.svelte";
+  import ThemeToggle from "$lib/components/theme-toggle.svelte";
   import LogoLink from "$lib/components/logo-link.svelte";
   import { Menu, Search, X } from "lucide-svelte";
   import { page } from "$app/state";
@@ -94,6 +95,8 @@
           </kbd>
         </a>
       {/if}
+
+      <ThemeToggle />
 
       <UserMenu {user} />
 
