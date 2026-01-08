@@ -1,12 +1,12 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { verifyUserSession } from "$lib/server/github-auth";
-import { getUserAccessToken } from "$lib/server/github-star";
-import { starRepoOnGitHub, unstarRepoOnGitHub } from "$lib/server/github-star";
 import {
-  addStarredProject,
-  removeStarredProject,
-} from "$lib/server/github-auth";
+  checkIfStarred,
+  getUserAccessToken,
+  starRepoOnGitHub,
+  unstarRepoOnGitHub,
+} from "$lib/server/github-star";
 import { sql } from "$lib/server/db";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
@@ -53,23 +53,61 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         repository_owner,
         repository_name,
       );
-      if (success) {
-        await addStarredProject(session.id, projectId);
-      }
     } else {
       success = await unstarRepoOnGitHub(
         accessToken,
         repository_owner,
         repository_name,
       );
-      if (success) {
-        await removeStarredProject(session.id, projectId);
-      }
     }
 
     return json({ success, action });
   } catch (err) {
     console.error("Star action error:", err);
     return json({ error: "Failed to update star" }, { status: 500 });
+  }
+};
+
+export const GET: RequestHandler = async ({ url, cookies }) => {
+  const sessionToken = cookies.get("session");
+  if (!sessionToken) {
+    return json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const session = verifyUserSession(sessionToken);
+  if (!session) {
+    return json({ error: "Invalid session" }, { status: 401 });
+  }
+
+  const projectId = Number(url.searchParams.get("projectId"));
+  if (!Number.isFinite(projectId)) {
+    return json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const projects = await sql`
+    SELECT repository_owner, repository_name
+    FROM projects WHERE id = ${projectId}
+  `;
+
+  if (projects.length === 0) {
+    return json({ error: "Project not found" }, { status: 404 });
+  }
+
+  const { repository_owner, repository_name } = projects[0];
+  const accessToken = await getUserAccessToken(session.id);
+  if (!accessToken) {
+    return json({ error: "No GitHub access token" }, { status: 401 });
+  }
+
+  try {
+    const starred = await checkIfStarred(
+      accessToken,
+      repository_owner,
+      repository_name,
+    );
+    return json({ starred });
+  } catch (err) {
+    console.error("Star status error:", err);
+    return json({ error: "Failed to load star status" }, { status: 500 });
   }
 };

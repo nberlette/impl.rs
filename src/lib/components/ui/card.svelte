@@ -1,20 +1,23 @@
 <script lang="ts">
-  import { cn } from "$lib/utils";
   import type { Snippet } from "svelte";
+  import type { ClassValue } from "svelte/elements";
 
   interface Props {
-    class?: string;
+    class?: ClassValue;
     children: Snippet;
+
+    [rest: string]: unknown;
   }
 
-  let { class: className = "", children }: Props = $props();
+  let { class: className = "", children, ...rest }: Props = $props();
 </script>
 
 <div
-  class={cn(
+  class={[
     "rounded-lg border bg-card text-card-foreground shadow-sm",
     className,
-  )}
+  ]}
+  {...rest}
 >
-  {@render children()}
+  {@render children?.()}
 </div>

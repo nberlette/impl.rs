@@ -52,9 +52,7 @@
       )}
       onclick={() => handleClick(tab.value)}
     >
-      {#if tab.icon}
-        {@render tab.icon()}
-      {/if}
+      {@render tab.icon?.()}
       {tab.label}
     </button>
   {/each}

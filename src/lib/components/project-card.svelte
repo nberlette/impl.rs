@@ -5,39 +5,46 @@
   import StarButton from "$lib/components/star-button.svelte";
   import type { RankedProject } from "$lib/types";
   import { page } from "$app/stores";
+  import { goto } from "$app/navigation";
   import {
     Clock,
     Download,
+    Factory,
     Flame,
     GitFork,
+    Newspaper,
     Sparkles,
     TrendingUp,
     Trophy,
   } from "lucide-svelte";
+  import type { ClassValue } from "svelte/elements";
+  import RankBadge from "./rank-badge.svelte";
+    import { markdownToHTML } from "comrak";
 
   interface Props {
     project: RankedProject;
     rank?: number;
     showRankBadge?: boolean;
-    class?: string;
+    class?: ClassValue;
+
+    [rest: string]: unknown;
   }
 
   let {
-    project,
-    rank,
+    project = $bindable(),
+    rank = $bindable(),
     showRankBadge = false,
     class: className = "",
+    ...rest
   }: Props = $props();
 
   let user = $derived($page.data.user);
-  let isStarred = $derived(
-    user?.starred_projects?.includes(project.id) ?? false,
-  );
 
   const rankingIcons = {
     hot: Flame,
     trending: TrendingUp,
-    new: Sparkles,
+    recent: Factory,
+    new: Newspaper,
     top: Trophy,
   };
 
@@ -46,31 +53,44 @@
       ? rankingIcons[project.ranking.ranking_type]
       : null,
   );
+
+  function handleCardClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("a,button")) return;
+    void goto(`/project/${project.slug}`);
+  }
+
+  function handleCardKeydown(event: KeyboardEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("a,button")) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      void goto(`/project/${project.slug}`);
+    }
+  }
 </script>
 
 <Card
-  class={cn(
-    "group relative overflow-hidden transition-all",
-    "hover:shadow-md hover:border-primary/20",
+  class={[
+    "group relative overflow-hidden transition-all shadow-sm",
+    "hover:shadow-md hover:border-primary/20!",
     className,
-  )}
+  ]}
+  role="link"
+  tabindex="0"
+  aria-label={`View details for ${project.name}`}
+  onkeydown={handleCardKeydown}
 >
-  <div class="block p-5">
+  <div class="relative z-10 block p-5">
     {#if showRankBadge && rank}
-      <div
-        class="
-          absolute top-3 right-3 flex size-8 items-center justify-center
-          rounded-full bg-primary/10 text-sm font-bold text-primary
-        "
-      >
-        #{rank}
-      </div>
+      <RankBadge {rank} variant="muted" size="md" prefix="" />
     {/if}
 
     <div class="flex items-start gap-4">
+      <a href={`/project/${project.slug}`} data-sveltekit-preload-data data-sveltekit-preload-code="viewport">
       {#if project.avatar_url}
         <img
-          src={project.avatar_url || "/placeholder.svg"}
+          src={project.avatar_url}
           alt=""
           class="size-12 rounded-lg bg-muted object-cover"
           loading="lazy"
@@ -87,6 +107,7 @@
           </span>
         </div>
       {/if}
+      </a>
 
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2">
@@ -96,27 +117,32 @@
               truncate text-lg font-semibold text-foreground
               group-hover:text-primary transition-colors
             "
+            data-sveltekit-preload-code="viewport"
+            data-sveltekit-preload-data="hover"
           >
             {project.name}
           </a>
           {#if project.is_featured}
-            <Badge variant="default" class="text-[10px]">Featured</Badge>
+            <Badge variant="default" class="text-2xs lowercase">Feat<span class="not-lg:sr-only">ured</span></Badge>
           {/if}
           {#if project.is_user_submitted}
-            <Badge variant="outline" class="text-[10px]">Community</Badge>
+            <Badge variant="outline" class="text-2xs lowercase">Contrib<span class="not-lg:sr-only">uted</span></Badge>
           {/if}
         </div>
 
-        <p
-          class="mt-1 line-clamp-2 text-sm text-foreground/70 text-pretty"
-        >
-          {project.description || "No description available"}
-        </p>
+        {#if project.description}
+          {@const description = markdownToHTML(project.description, { extension: { shortcodes: true, tasklist: true } })}
+          <p
+            class="mt-1 line-clamp-2 text-sm text-foreground/70 text-pretty"
+          >
+            {@html description}
+          </p>
+        {/if}
       </div>
     </div>
 
     <div class="mt-4 flex flex-wrap gap-1.5">
-      {#each (project.topics || []).slice(0, 4) as topic}
+      {#each (project.topics || []).slice(0, 8) as topic}
         <span
           class="
             rounded-full bg-secondary px-2 py-0.5 text-xs
@@ -126,65 +152,69 @@
           {topic}
         </span>
       {/each}
-      {#if project.topics && project.topics.length > 4}
+      {#if project.topics && project.topics.length > 8}
         <span class="text-xs text-foreground/60">
-          +{project.topics.length - 4} more
+          +{project.topics.length - 8} more
         </span>
       {/if}
     </div>
 
-    <!-- Updated stats row with StarButton -->
     <div
       class="mt-4 flex flex-wrap items-center justify-between gap-4"
     >
       <div class="flex flex-wrap items-center gap-4 text-sm text-foreground/70">
-        <!-- Replace Star icon with interactive StarButton -->
         <StarButton
           projectId={project.id}
-          {isStarred}
           isAuthenticated={!!user}
-          size="sm"
-          showCount
           count={project.stars}
+          showCount
+          size="sm"
+          label="sr-only"
         />
-        <div class="flex items-center gap-1" title="Forks">
+        <a
+          class="select-none inline-flex items-center gap-1"
+          title="Forks"
+          href="https://github.com/{project.repository_owner}/{project.repository_name}/forks"
+          target="_blank"
+          rel="noreferrer"
+        >
           <GitFork class="size-4" />
           <span>{formatNumber(project.forks)}</span>
-        </div>
+        </a>
         {#if project.total_downloads > 0}
-          <div class="flex items-center gap-1" title="Downloads">
+          <div class="flex items-center gap-1 select-none" title="Downloads">
             <Download class="size-4" />
             <span>{formatNumber(project.total_downloads)}</span>
           </div>
         {/if}
         {#if project.last_commit_at}
-          <div class="flex items-center gap-1" title="Last updated">
+          <a
+            class="select-none inline-flex items-center gap-1"
+            title="Last updated"
+            href="https://github.com/{project.repository_owner}/{project.repository_name}/commits"
+            target="_blank"
+            rel="noreferrer"
+          >
             <Clock class="size-4" />
-            <span>{timeAgo(project.last_commit_at)}</span>
-          </div>
+            <time datetime={project.last_commit_at}>{timeAgo(project.last_commit_at)}</time>
+          </a>
         {/if}
       </div>
-
-      <a
-        href="/project/{project.slug}"
-        class="text-sm font-medium text-primary hover:underline"
-      >
-        View details
-      </a>
     </div>
 
     {#if project.ranking?.score_breakdown}
       <div
         class="
           mt-3 flex items-center gap-2 border-t pt-3 text-xs
-          text-foreground/60
+          text-foreground/60 select-none
         "
       >
         {#if RankIcon}
           <RankIcon class="h-3.5 w-3.5 text-primary" />
         {/if}
         <span>
-          Score: {project.ranking.score.toFixed(2)}
+          <span class="sr-only">Score: </span>
+          {project.ranking.score.toFixed(2)}
         </span>
       </div>
     {/if}

@@ -12,6 +12,7 @@ export async function starRepoOnGitHub(
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/vnd.github.v3+json",
+        "User-Agent": "impl-rs-bot",
         "Content-Length": "0",
       },
     },
@@ -32,6 +33,7 @@ export async function unstarRepoOnGitHub(
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/vnd.github.v3+json",
+        "User-Agent": "impl-rs-bot",
       },
     },
   );
@@ -51,6 +53,7 @@ export async function checkIfStarred(
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/vnd.github.v3+json",
+        "User-Agent": "impl-rs-bot",
       },
     },
   );

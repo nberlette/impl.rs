@@ -1,11 +1,11 @@
 import { sql } from "./db";
-import type { User } from "$lib/types";
+import type { GitHubUser, User } from "$lib/types";
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from "./env";
 import { Buffer } from "node:buffer";
 
 let DEFAULT_SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
 
-export function setDefaultSessionExpiry(ttl_ms: number): number {
+export function setDefaultSessionExpiry(ttl_ms: number): void {
   ttl_ms = (ttl_ms = +ttl_ms) < 1e4 ? ttl_ms * 1e3 : ttl_ms;
   DEFAULT_SESSION_DURATION = ttl_ms;
 }
@@ -14,10 +14,10 @@ export function getDefaultSessionExpiry(): number {
   return DEFAULT_SESSION_DURATION;
 }
 
-export function getGitHubAuthUrl(redirectUri: string): string {
+export function getGitHubAuthUrl(redirect_uri: string): string {
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
-    redirect_uri: redirectUri,
+    redirect_uri,
     scope: "read:user user:email public_repo",
     state: generateState(),
   });
@@ -50,13 +50,7 @@ export async function exchangeCodeForToken(code: string): Promise<string> {
   return data.access_token;
 }
 
-export async function getGitHubUser(accessToken: string): Promise<{
-  id: number;
-  login: string;
-  name: string | null;
-  email: string | null;
-  avatar_url: string;
-}> {
+export async function getGitHubUser(accessToken: string): Promise<GitHubUser> {
   const response = await fetch("https://api.github.com/user", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -72,13 +66,7 @@ export async function getGitHubUser(accessToken: string): Promise<{
 }
 
 export async function findOrCreateUser(
-  githubUser: {
-    id: number;
-    login: string;
-    name: string | null;
-    email: string | null;
-    avatar_url: string;
-  },
+  githubUser: GitHubUser,
   accessToken: string,
 ): Promise<User> {
   // Check if user exists

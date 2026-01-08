@@ -1,5 +1,13 @@
 import type { RankingFilter, RankingType } from "$lib/rankings";
 
+export interface GitHubUser {
+  id: number;
+  login: string;
+  name: string | null;
+  email: string | null;
+  avatar_url: string;
+}
+
 export interface Project {
   id: number;
   slug: string;
