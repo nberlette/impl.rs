@@ -10,7 +10,6 @@
     value: ThemeMode;
     label: string;
     icon: typeof SvelteComponentTyped<any>;
-    selector?: string;
   }
 
   const defaultThemeOptions: ThemeOption[] = [
@@ -31,10 +30,10 @@
 
   let {
     options: themeOptions = defaultThemeOptions,
-    theme = $bindable("system"),
     menuOpen = $bindable(false),
+    theme = $bindable("system"),
     class: className = "",
-    storageKey = "theme",
+    storageKey = "impl-rs-theme",
     ...rest
   }: Props = $props();
 
@@ -68,7 +67,7 @@
 
   function setTheme(next: ThemeMode) {
     theme = next;
-    globalThis.localStorage?.setItem(storageKey, next);
+    localStorage?.setItem(storageKey, next);
     applyTheme(next);
   }
 
@@ -81,15 +80,8 @@
   }
 
   onMount(() => {
-    const stored = globalThis.localStorage?.getItem(storageKey) as
-      | ThemeMode
-      | null;
-    const legacyStored = globalThis.localStorage?.getItem(
-      "impl-rs-theme",
-    ) as
-      | ThemeMode
-      | null;
-    const initialTheme = stored ?? legacyStored;
+    const initialTheme = localStorage?.getItem(storageKey) as ThemeMode ??
+      null;
     if (
       initialTheme &&
       themeOptions.some((option) => option.value === initialTheme)
@@ -112,7 +104,21 @@
 
 <svelte:document
   on:visibilitychange={closeMenu}
-  onkeydown={closeMenu}
+  onkeydown={(e) => {
+    if (e.key === "Escape" && menuOpen) {
+      closeMenu();
+    }
+  }}
+  onclick={(e) => {
+    const { x, y, currentTarget: doc } = e;
+    const elements = doc.elementsFromPoint(x, y);
+    // check if the click is outside the user menu
+    if (menuOpen && menu && !elements.includes(menu)) {
+      closeMenu();
+      // prevent other side-effects from occurring
+      return false;
+    }
+  }}
 />
 
 <div class={["relative", className]} bind:this={menu}>
@@ -134,7 +140,7 @@
     }}
   >
     <Icon class="size-4" />
-    <span class="hidden sm:inline">{label}</span>
+    <span class="sr-only">{label}</span>
   </button>
 
   {#if menuOpen}
