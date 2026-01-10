@@ -1,3 +1,7 @@
+<script lang="ts" module>
+  export const ssr = true;
+</script>
+
 <script lang="ts">
   import { Laptop as System, Moon, Sun } from "lucide-svelte";
   import { onMount } from "svelte";
@@ -80,13 +84,12 @@
   }
 
   onMount(() => {
-    const initialTheme = localStorage?.getItem(storageKey) as ThemeMode ?? null;
+    const initial = localStorage?.getItem(storageKey) as ThemeMode ?? null;
     if (
-      initialTheme &&
-      themeOptions.some((option) => option.value === initialTheme)
-    ) {
-      theme = initialTheme;
-    }
+      initial &&
+      themeOptions.some((option) => option.value === initial)
+    ) theme = initial;
+
     applyTheme(theme);
 
     mediaQuery = globalThis.matchMedia?.("(prefers-color-scheme: dark)");
@@ -125,7 +128,7 @@
     type="button"
     class="
       flex items-center gap-2 rounded-md border bg-secondary
-      px-2.5 py-1.5 text-sm text-foreground transition-colors
+      p-2 text-sm text-foreground transition-colors
       hover:bg-secondary/80 focus-visible:outline-none
       focus-visible:ring-2 focus-visible:ring-ring
       focus-visible:ring-offset-2 focus-visible:ring-offset-background
