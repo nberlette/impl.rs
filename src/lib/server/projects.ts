@@ -179,7 +179,7 @@ export async function searchProjectsPage(
 
   const results = await sql`
     SELECT * FROM projects
-    WHERE 
+    WHERE
       (name ILIKE ${searchTerm} OR description ILIKE ${searchTerm})
       AND is_archived = false
     ORDER BY
@@ -198,7 +198,7 @@ export async function searchProjectsPage(
   const count = await sql`
     SELECT COUNT(*) as count
     FROM projects
-    WHERE 
+    WHERE
       (name ILIKE ${searchTerm} OR description ILIKE ${searchTerm})
       AND is_archived = false
   `;
@@ -226,7 +226,7 @@ export async function getProjectStats(): Promise<{
   recentlyUpdated: number;
 }> {
   const results = await sql`
-    SELECT 
+    SELECT
       COUNT(*) as total_projects,
       COALESCE(SUM(stars), 0) as total_stars,
       COALESCE(SUM(total_downloads), 0) as total_downloads,

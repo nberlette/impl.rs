@@ -96,7 +96,7 @@
         </a>
       {/if}
 
-      <ThemeToggle />
+      <ThemeToggle c />
 
       <UserMenu {user} />
 

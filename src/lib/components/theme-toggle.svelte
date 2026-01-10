@@ -80,8 +80,7 @@
   }
 
   onMount(() => {
-    const initialTheme = localStorage?.getItem(storageKey) as ThemeMode ??
-      null;
+    const initialTheme = localStorage?.getItem(storageKey) as ThemeMode ?? null;
     if (
       initialTheme &&
       themeOptions.some((option) => option.value === initialTheme)

@@ -84,7 +84,7 @@
           <User class="size-4" />
         </div>
       {/if}
-      <span class="hidden font-medium sm:inline">
+      <span class="sr-only">
         {user.name || user.github_username}
       </span>
       <ChevronDown class="size-4 text-foreground/70" />

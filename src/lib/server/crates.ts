@@ -121,7 +121,7 @@ export async function getDependenciesCount(crateName: string): Promise<number> {
 export async function syncCratesData(projectId: number): Promise<boolean> {
   try {
     const project = await sql`
-      SELECT crates_io_name, repository_name, repository_owner 
+      SELECT crates_io_name, repository_name, repository_owner
       FROM projects WHERE id = ${projectId}
     `;
 

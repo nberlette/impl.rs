@@ -25,6 +25,8 @@
     project: RankedProject;
     rank?: number;
     showRankBadge?: boolean;
+    showFeaturedBadge?: boolean;
+    showContributedBadge?: boolean;
     class?: ClassValue;
 
     [rest: string]: unknown;
@@ -33,8 +35,9 @@
   let {
     project = $bindable(),
     rank = $bindable(),
-    showRankBadge = false,
-
+    showRankBadge = true,
+    showContributedBadge = true,
+    showFeaturedBadge = true,
     class: className = "",
     ...rest
   }: Props = $props();
@@ -127,12 +130,12 @@
           >
             {project.name}
           </a>
-          {#if project.is_featured}
+          {#if project.is_featured && showFeaturedBadge}
             <Badge variant="default" class="text-2xs lowercase">Feat<span
                 class="not-lg:sr-only"
               >ured</span></Badge>
           {/if}
-          {#if project.is_user_submitted}
+          {#if project.is_user_submitted && showContributedBadge}
             <Badge variant="outline" class="text-2xs lowercase">Contrib<span
                 class="not-lg:sr-only"
               >uted</span></Badge>
@@ -156,8 +159,9 @@
       {#each (project.topics || []).slice(0, 8) as topic}
         <span
           class="
-            rounded-full bg-secondary px-2 py-0.5 text-xs
-            text-secondary-foreground
+            rounded-full bg-secondary px-2 py-0.5 text-xs select-none
+            text-secondary-foreground/40 hover:text-secondary-foreground
+            shadow-sm hover:shadow-md duration-300 transition-all ease-in-out
           "
         >
           {topic}
