@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         LIMIT 10
       `,
       sql`
-        SELECT 
+        SELECT
           COALESCE(license, 'Unknown') as license,
           COUNT(*) as count
         FROM projects
@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         LIMIT 10
       `,
       sql`
-        SELECT 
+        SELECT
           unnest(topics) as topic,
           COUNT(*) as count
         FROM projects
@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         LIMIT 15
       `,
       sql`
-        SELECT 
+        SELECT
           DATE(created_at) as date,
           COUNT(*) as count
         FROM projects

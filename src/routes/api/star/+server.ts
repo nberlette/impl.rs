@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
   // Get project details
   const projects = await sql`
-    SELECT repository_owner, repository_name 
+    SELECT repository_owner, repository_name
     FROM projects WHERE id = ${projectId}
   `;
 

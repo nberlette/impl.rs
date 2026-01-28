@@ -6,13 +6,15 @@
   import Input from "$lib/components/ui/input.svelte";
   import { page } from "$app/state";
   import { formatDate, timeAgo } from "$lib/utils";
-  import { History, User } from "lucide-svelte";
+  import { FileBracesCorner, FileCodeCorner, FileSpreadsheet, History, User } from "lucide-svelte";
 
   interface Props {
     data: PageData;
   }
 
   let { data }: Props = $props();
+
+  let collapsed = $state(false);
 
   const exportParams = $derived.by(() => {
     const params = new URLSearchParams(page.url.searchParams);
@@ -38,9 +40,9 @@
   };
 </script>
 
-<div>
+<div class="space-y-6">
   <Card class="p-4">
-    <form method="GET" class="grid gap-3 md:grid-cols-6">
+    <form method="GET" class="grid gap-3 grid-cols-2 md:grid-cols-6 grid-rows-4 md:grid-rows-3">
       <div class="md:col-span-2">
         <label for="filter_query" class="text-xs font-medium text-foreground/70"
         >Search</label>
@@ -51,7 +53,7 @@
           placeholder="Action, entity, admin, id"
         />
       </div>
-      <div>
+      <div class="md:col-span-2">
         <label
           for="filter_action"
           class="text-xs font-medium text-foreground/70"
@@ -111,48 +113,41 @@
           {/each}
         </select>
       </div>
-      <div>
-        <label for="date_start" class="text-xs font-medium text-foreground/70"
-        >Start Date</label>
-        <Input
-          id="date_start"
-          name="from"
-          type="date"
-          bind:value={current.from}
-        />
+      <div class="md:col-span-2">
+        <label for="dt_a" class="text-xs font-medium text-foreground/70">Start Date</label>
+        <Input id="dt_a" name="from" type="date" bind:value={current.from} />
       </div>
-      <div>
-        <label for="date_end" class="text-xs font-medium text-foreground/70"
-        >End Date</label>
-        <Input id="date_end" name="to" type="date" bind:value={current.to} />
+      <div class="md:col-span-2">
+        <label for="dt_b" class="text-xs font-medium text-foreground/70">End Date</label>
+        <Input id="dt_b" name="to" type="date" bind:value={current.to} />
       </div>
-      <div class="md:col-span-6 flex flex-wrap gap-2">
+      <div class="col-span-2 md:col-span-6 flex gap-2 mt-2 pt-4 border-t border-t-border/20">
         <Button type="submit" variant="outline">Apply</Button>
         <Button type="reset" variant="ghost">Reset</Button>
-        <div class="ml-auto flex flex-wrap gap-2">
+        <div class="ml-auto flex gap-2">
           <Button
-            variant="outline"
+            variant="secondary"
             href={`/admin/audit/export.csv?${exportParams}`}
-            class="cursor-copy"
+            class="cursor-copy text-xs"
             size="sm"
           >
-            Export CSV
+            <FileSpreadsheet class="size-4 hidden sm:inline-block" /> CSV
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             href={`/admin/audit/export.json?${exportParams}`}
-            cursor="cursor-copy"
+            class="cursor-copy text-xs"
             size="sm"
           >
-            Export JSON
+            <FileBracesCorner class="size-4 hidden sm:inline-block" /> JSON
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             href={`/admin/audit/export.yml?${exportParams}`}
-            cursor="cursor-copy"
+            class="cursor-copy text-xs"
             size="sm"
           >
-            Export YAML
+            <FileCodeCorner class="size-4 hidden sm:inline-block" /> YAML
           </Button>
         </div>
       </div>

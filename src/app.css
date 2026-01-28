@@ -129,3 +129,10 @@ body {
 .text-pretty {
   text-wrap: pretty;
 }
+
+@utility link {
+  @apply rounded-sm duration-300 ease-in-out hover:text-rust hover:underline
+    focus-visible:underline focus-visible:outline-none focus-visible:ring-2
+    focus-visible:ring-ring focus-visible:ring-offset-2
+    focus-visible:ring-offset-background;
+}

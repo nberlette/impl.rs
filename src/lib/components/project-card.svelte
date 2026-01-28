@@ -4,7 +4,7 @@
   import Card from "$lib/components/ui/card.svelte";
   import StarButton from "$lib/components/star-button.svelte";
   import type { RankedProject } from "$lib/types";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import {
     Clock,
@@ -19,12 +19,14 @@
   } from "lucide-svelte";
   import type { ClassValue } from "svelte/elements";
   import RankBadge from "./rank-badge.svelte";
-    import { markdownToHTML } from "comrak";
+  import { markdownToHTML } from "comrak";
 
   interface Props {
     project: RankedProject;
     rank?: number;
     showRankBadge?: boolean;
+    showFeaturedBadge?: boolean;
+    showContributedBadge?: boolean;
     class?: ClassValue;
 
     [rest: string]: unknown;
@@ -33,12 +35,14 @@
   let {
     project = $bindable(),
     rank = $bindable(),
-    showRankBadge = false,
+    showRankBadge = true,
+    showContributedBadge = true,
+    showFeaturedBadge = true,
     class: className = "",
     ...rest
   }: Props = $props();
 
-  let user = $derived($page.data.user);
+  let user = $derived(page.data.user);
 
   const rankingIcons = {
     hot: Flame,
@@ -87,26 +91,30 @@
     {/if}
 
     <div class="flex items-start gap-4">
-      <a href={`/project/${project.slug}`} data-sveltekit-preload-data data-sveltekit-preload-code="viewport">
-      {#if project.avatar_url}
-        <img
-          src={project.avatar_url}
-          alt=""
-          class="size-12 rounded-lg bg-muted object-cover"
-          loading="lazy"
-        />
-      {:else}
-        <div
-          class="
-            flex size-12 items-center justify-center rounded-lg
-            bg-primary/10 text-primary
-          "
-        >
-          <span class="text-lg font-bold">
-            {project.name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-      {/if}
+      <a
+        href={`/project/${project.slug}`}
+        data-sveltekit-preload-data
+        data-sveltekit-preload-code="viewport"
+      >
+        {#if project.avatar_url}
+          <img
+            src={project.avatar_url}
+            alt=""
+            class="size-12 rounded-lg bg-muted object-cover"
+            loading="lazy"
+          />
+        {:else}
+          <div
+            class="
+              flex size-12 items-center justify-center rounded-lg
+              bg-primary/10 text-primary
+            "
+          >
+            <span class="text-lg font-bold">
+              {project.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        {/if}
       </a>
 
       <div class="min-w-0 flex-1">
@@ -122,18 +130,24 @@
           >
             {project.name}
           </a>
-          {#if project.is_featured}
-            <Badge variant="default" class="text-2xs lowercase">Feat<span class="not-lg:sr-only">ured</span></Badge>
+          {#if project.is_featured && showFeaturedBadge}
+            <Badge variant="default" class="text-2xs lowercase">Feat<span
+                class="not-lg:sr-only"
+              >ured</span></Badge>
           {/if}
-          {#if project.is_user_submitted}
-            <Badge variant="outline" class="text-2xs lowercase">Contrib<span class="not-lg:sr-only">uted</span></Badge>
+          {#if project.is_user_submitted && showContributedBadge}
+            <Badge variant="outline" class="text-2xs lowercase">Contrib<span
+                class="not-lg:sr-only"
+              >uted</span></Badge>
           {/if}
         </div>
 
         {#if project.description}
-          {@const description = markdownToHTML(project.description, { extension: { shortcodes: true, tasklist: true } })}
+          {@const           description = markdownToHTML(project.description, {
+            extension: { shortcodes: true, tasklist: true },
+          })}
           <p
-            class="mt-1 line-clamp-2 text-sm text-foreground/70 text-pretty"
+            class="mt-1 line-clamp-3 text-sm text-foreground/70 text-pretty"
           >
             {@html description}
           </p>
@@ -145,8 +159,9 @@
       {#each (project.topics || []).slice(0, 8) as topic}
         <span
           class="
-            rounded-full bg-secondary px-2 py-0.5 text-xs
-            text-secondary-foreground
+            rounded-full bg-secondary px-2 py-0.5 text-xs select-none
+            text-secondary-foreground/40 hover:text-secondary-foreground
+            shadow-sm hover:shadow-md duration-300 transition-all ease-in-out
           "
         >
           {topic}
@@ -172,7 +187,7 @@
           label="sr-only"
         />
         <a
-          class="select-none inline-flex items-center gap-1"
+          class="select-none inline-flex items-center gap-1 text-xs"
           title="Forks"
           href="https://github.com/{project.repository_owner}/{project.repository_name}/forks"
           target="_blank"
@@ -182,21 +197,27 @@
           <span>{formatNumber(project.forks)}</span>
         </a>
         {#if project.total_downloads > 0}
-          <div class="flex items-center gap-1 select-none" title="Downloads">
+          <a
+            href="/project/{project.slug}/#downloads"
+            class="inline-flex items-center gap-1 select-none text-xs"
+            title="{project.name} has been downloaded {formatNumber(project.total_downloads)} times!"
+          >
             <Download class="size-4" />
             <span>{formatNumber(project.total_downloads)}</span>
-          </div>
+          </a>
         {/if}
         {#if project.last_commit_at}
           <a
-            class="select-none inline-flex items-center gap-1"
+            class="select-none inline-flex items-center gap-1 text-xs"
             title="Last updated"
             href="https://github.com/{project.repository_owner}/{project.repository_name}/commits"
             target="_blank"
             rel="noreferrer"
           >
             <Clock class="size-4" />
-            <time datetime={project.last_commit_at}>{timeAgo(project.last_commit_at)}</time>
+            <time datetime={project.last_commit_at}>{
+              timeAgo(project.last_commit_at)
+            }</time>
           </a>
         {/if}
       </div>
